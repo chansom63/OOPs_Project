@@ -34,6 +34,10 @@ public:
 	// member functions here
 };
 
+class Admin;
+
+class PowerSource;
+
 int main()
 {
 
