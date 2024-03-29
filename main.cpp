@@ -52,34 +52,36 @@ public:
 
 class PowerSource
 {
-    unsigned int Qty;
-    double PowerRating;
+	unsigned int Qty;
+	double PowerRating;
 public:
-    PowerSource (){}
-    PowerSource (unsigned int q, double rate)
-    {
-        Qty = q;
-        PowerRating = rate;
-    }
+	PowerSource (){}
+	PowerSource (unsigned int q, double rate)
+	{
+		Qty = q;
+		PowerRating = rate;
+	}
+	// member functions here
 };
 
 class Admin
 {
-    vector<Sections> sections;
-    PowerSource Solar;
-    PowerSource RegularSupply;
-    vector<Room> Rooms;
+	vector<Sections> sections;
+	PowerSource Solar;
+	PowerSource RegularSupply;
+	vector<Room> Rooms;
 public:
-    Admin (vector<Sections> sections,
-    PowerSource solar,
-    PowerSource regularSupply,
-    vector<Room> rooms)
-    {
-        Sections = sections;
-        Solar = solar;
-        RegularSupply = regularSupply;
-        Rooms = rooms;
-    }
+	Admin (vector<Sections> sections,
+	PowerSource solar,
+	PowerSource regularSupply,
+	vector<Room> rooms)
+	{
+		Sections = sections;
+		Solar = solar;
+		RegularSupply = regularSupply;
+		Rooms = rooms;
+	}
+	// member functions here
 };
 
 int main()
