@@ -21,7 +21,6 @@ public:
 	// member functions here
 };
 
-
 class Room
 {
 	vector<Appliances> appliances;
@@ -51,9 +50,37 @@ public:
 	// member functions here
 };
 
-class Admin;
+class PowerSource
+{
+    unsigned int Qty;
+    double PowerRating;
+public:
+    PowerSource (){}
+    PowerSource (unsigned int q, double rate)
+    {
+        Qty = q;
+        PowerRating = rate;
+    }
+};
 
-class PowerSource;
+class Admin
+{
+    vector<Sections> sections;
+    PowerSource Solar;
+    PowerSource RegularSupply;
+    vector<Room> Rooms;
+public:
+    Admin (vector<Sections> sections,
+    PowerSource solar,
+    PowerSource regularSupply,
+    vector<Room> rooms)
+    {
+        Sections = sections;
+        Solar = solar;
+        RegularSupply = regularSupply;
+        Rooms = rooms;
+    }
+};
 
 int main()
 {
