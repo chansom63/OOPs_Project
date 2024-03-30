@@ -25,13 +25,13 @@ class Room
 {
 	vector<Appliances> appliances;
 	string name;
-	unsigned int quantity;
+	unsigned int qty;
 public:
 	Room(vector<Appliances> a, string n, unsigned int q)
 	{
 		appliances = a;
 		name = n;
-		quantity = q;
+		qty = q;
 	}
 	// member functions here
 };
@@ -52,13 +52,13 @@ public:
 
 class PowerSource
 {
-	unsigned int Qty;
+	unsigned int qty;
 	double PowerRating;
 public:
 	PowerSource (){}
 	PowerSource (unsigned int q, double rate)
 	{
-		Qty = q;
+		qty = q;
 		PowerRating = rate;
 	}
 	// member functions here
