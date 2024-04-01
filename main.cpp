@@ -3,7 +3,7 @@
 #include <vector>
 #include <stdio.h>
 using namespace std;
-//somesh
+//somesh ch
 class Appliances
 {
 	string name;
