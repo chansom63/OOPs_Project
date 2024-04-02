@@ -1,7 +1,16 @@
 #include <iostream>
 #include <string>
+#include <stdio.h>
 #include <vector>
+#include <limits>
 using namespace std;
+
+// Error proof input functions
+void ignoreLine();
+double getDouble(string s);
+string getString(string a);
+int getInt(string s);
+bool getBool(string s);
 
 class Appliances
 {
@@ -11,6 +20,7 @@ class Appliances
 	bool status;
 	bool conditions;
 public:
+	Appliances() = default;
 	Appliances(string N, double P, unsigned int Q, bool S, bool C)
 	{
 		name = N;
@@ -22,12 +32,16 @@ public:
 	// member functions here
 };
 
+// forward declaration
+Appliances inputAppliance();
+
 class Room
 {
 	vector<Appliances> appliances;
 	string name;
 	unsigned int qty;
 public:
+	Room() = default;
 	Room(vector<Appliances> a, string n, unsigned int q)
 	{
 		appliances = a;
@@ -35,6 +49,10 @@ public:
 		qty = q;
 	}
 	// member functions here
+	void addAppliance()
+	{
+		appliances.push_back(inputAppliance());
+	}
 };
 
 class Sections
@@ -49,6 +67,11 @@ public:
 		appliances = a;
 	}
 	// member functions here
+	void addAppliance()
+	{
+		appliances.push_back(inputAppliance());
+	}
+
 };
 
 class PowerSource
@@ -72,12 +95,12 @@ class Admin
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
 public:
-	Admin(vector<Sections> sections,
+	Admin(vector<Sections> section,
 		PowerSource solar,
 		PowerSource regularSupply,
 		vector<Room> rooms)
 	{
-		sections = sections;
+		sections = section;
 		Solar = solar;
 		RegularSupply = regularSupply;
 		Rooms = rooms;
@@ -140,7 +163,7 @@ public:
 			<< "1.View Pending complaints." << endl
 			<< "2.View Resolved complaints." << endl
 			<< "3.View all Complaints" << endl
-			<< "Press the key:" << endl;
+			<< "Press the key: " << endl;
 		cin >> selector;
 
 		//Checker block
@@ -155,7 +178,8 @@ public:
 			default:
 				fflush(stdin);
 				cout << "\nInvalid input" << endl
-					<< "Press the key again:";
+					<< "Press the key again: ";
+				ignoreLine();
 				cin >> selector;
 			}
 		}
@@ -209,13 +233,125 @@ public:
 		default:
 			cout << "\nInvalid Input";
 		}
-		cout << "\n\n-----------------------------------------------------------------------------------------------";
+		cout << "\n\n-----------------------------------------------------------------------------------------------\n";
 	}
 };
 
+// Input function for add appliances functionality
+
+Appliances inputAppliance()
+{
+	cout << "+-----------------+" << std::endl;
+	cout << "|  Add Appliance  |" << std::endl;
+	cout << "+-----------------+" << std::endl;
+	string name;
+	double power;
+	int qty = -1;
+	bool status;
+	bool condition;
+	name = getString("Enter the name of appliance: ");
+	power = getDouble("Enter power: ");
+	while (qty < 0)
+		qty = getInt("Enter quantity: ");
+	status = getBool("Enter status(1 / 0) : ");
+	condition = getBool("Enter condition: (1 / 0): ");
+	return Appliances (name, power, qty, status, condition);
+}
 
 
 int main()
 {
+	ComplaintRecord R;
+	R.display();
+	Room a;
+	a.addAppliance();
+}
 
+// Error check functionalities
+void ignoreLine()
+{
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+double getDouble(string s)
+{
+	while (true)
+	{
+		double x{};
+		cout << s;
+		std::cin >> x;
+
+		if (!std::cin)
+		{
+			std::cin.clear();
+			ignoreLine();
+			std::cout << "Input is invalid. Please try again.\n";
+			continue;
+		}
+		if (!std::cin.eof() && std::cin.peek() != '\n')
+		{
+			ignoreLine(); // remove extraneous input
+			std::cout << "Input is invalid. Please try again.\n";
+			continue;
+		}
+		return x;
+	}
+}
+
+string getString(string a)
+{
+	string s{};
+	cout << a;
+	getline(cin >> ws, s);
+	return s;
+}
+
+int getInt(string s)
+{
+	while (true)
+	{
+		int x{};
+		cout << s;
+		std::cin >> x;
+
+		if (!std::cin)
+		{
+			std::cin.clear();
+			ignoreLine();
+			std::cout << "Input is invalid. Please try again.\n";
+			continue;
+		}
+		if (!std::cin.eof() && std::cin.peek() != '\n')
+		{
+			ignoreLine(); // remove extraneous input
+			std::cout << "Input is invalid. Please try again.\n";
+			continue;
+		}
+		return x;
+	}
+}
+
+bool getBool(string s)
+{
+	while (true)
+	{
+		bool x{};
+		cout << s;
+		std::cin >> x;
+
+		if (!std::cin)
+		{
+			std::cin.clear();
+			ignoreLine();
+			std::cout << "Input is invalid. Please try again.\n";
+			continue;
+		}
+		if (!std::cin.eof() && std::cin.peek() != '\n')
+		{
+			ignoreLine(); // remove extraneous input
+			std::cout << "Input is invalid. Please try again.\n";
+			continue;
+		}
+		return x;
+	}
 }
