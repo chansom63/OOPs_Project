@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <vector>
 #include <limits>
+#include<iomanip>
 using namespace std;
 
 // Error proof input functions
@@ -30,6 +31,7 @@ public:
 		conditions = C;
 	}
 	// member functions here
+        friend class Room;
 };
 
 // forward declaration
@@ -53,6 +55,18 @@ public:
 	{
 		appliances.push_back(inputAppliance());
 	}
+        void currentStatus()
+    {
+        cout << "Current Status of Appliances in Room " << name << ":" << endl;
+        for (unsigned int i = 0; i < appliances.size(); ++i)
+        {
+            cout << "Appliance: " << setw(20) << left << appliances[i].name << " - Status: ";
+            if (appliances[i].status)
+                cout << setw(5) << right << "On" << endl;
+            else
+                cout << setw(5) << right << "Off" << endl;
+        }
+    }
 };
 
 class Sections
