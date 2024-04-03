@@ -32,7 +32,7 @@ public:
 	}
 	// member functions here
 	// Report function
-	void report() 
+	void report()  // edit
 	{
 		vector<pair<string, pair<double, string>>> thresholds = {
 			{"Tube Light", {80, "Warning: risk of electric shock due to high current!"}},
@@ -90,6 +90,13 @@ public:
 				cout << setw(5) << right << "On" << endl;
 			else
 				cout << setw(5) << right << "Off" << endl;
+		}
+	}
+	void report() // add synonymous function to other classes as well
+	{
+		for (int i = 0; i < appliances.size(); i++)
+		{
+			appliances[i].report();
 		}
 	}
 };
@@ -204,6 +211,10 @@ public:
 			<< "3.View all Complaints" << endl
 			<< "Press the key: " << endl;
 		cin >> selector;
+		if (!std::cin.eof() && std::cin.peek() != '\n')
+		{
+			goto ERROR;
+		}
 
 		//Checker block
 		while (!check)
@@ -215,11 +226,16 @@ public:
 			case '3':
 				check = 1; break;
 			default:
+				ERROR:
 				fflush(stdin);
 				cout << "\nInvalid input" << endl
 					<< "Press the key again: ";
 				ignoreLine();
 				cin >> selector;
+				if (!std::cin.eof() && std::cin.peek() != '\n')
+				{
+					goto ERROR;
+				}
 			}
 		}
 		switch (selector)
@@ -304,6 +320,8 @@ int main()
 	R.display();
 	Room a;
 	a.addAppliance();
+	a.addAppliance();
+	a.report();
 }
 
 // Error check functionalities
