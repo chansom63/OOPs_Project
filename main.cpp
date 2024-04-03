@@ -31,6 +31,31 @@ public:
 		conditions = C;
 	}
 	// member functions here
+	// Report function
+	void report() 
+	{
+		vector<pair<string, pair<double, string>>> thresholds = {
+			{"Tube Light", {80, "Warning: risk of electric shock due to high current!"}},
+			{"Fan", {80, "Warning: risk of electric shock due to high current!"}},
+			{"LED lights", {80, "Warning: risk of electric shock due to high current!"}},
+			{"Projector", {100, "Warning: risk of short circuit due to high power consumption!"}},
+			{"amplifiers", {100, "Warning: risk of short circuit due to high power consumption!"}},
+			{"computer system", {500, "Warning: potential physical damage to electronic components!"}},
+			{"television", {500, "Warning: potential physical damage to electronic components!"}},
+			{"AC", {3000, "Warning: risk of any malfunction!"}},
+			{"d link router", {20, "Warning: risk of malfunctioning!"}},
+			{"water cooler", {500, "Warning: risk of over heating and equipment damage!"}},
+			{"speakers", {1000, "Warning: risk of malfunctioning!"}},
+			{"cctv", {15, "Warning: risk of electrical shock and over heating!"}}
+		};
+
+		for (const auto& threshold : thresholds) {
+			if (name == threshold.first && power > threshold.second.first) {
+				cout << threshold.second.second << endl;
+				return;
+			}
+		}
+	}
 	friend class Room;
 };
 
