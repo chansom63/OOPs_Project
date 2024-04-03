@@ -31,7 +31,7 @@ public:
 		conditions = C;
 	}
 	// member functions here
-        friend class Room;
+	friend class Room;
 };
 
 // forward declaration
@@ -55,18 +55,18 @@ public:
 	{
 		appliances.push_back(inputAppliance());
 	}
-        void currentStatus()
-    {
-        cout << "Current Status of Appliances in Room " << name << ":" << endl;
-        for (unsigned int i = 0; i < appliances.size(); ++i)
-        {
-            cout << "Appliance: " << setw(20) << left << appliances[i].name << " - Status: ";
-            if (appliances[i].status)
-                cout << setw(5) << right << "On" << endl;
-            else
-                cout << setw(5) << right << "Off" << endl;
-        }
-    }
+	void currentStatus()
+	{
+		cout << "Current Status of Appliances in Room " << name << ":" << endl;
+		for (unsigned int i = 0; i < appliances.size(); ++i)
+		{
+			cout << "Appliance: " << setw(20) << left << appliances[i].name << " - Status: ";
+			if (appliances[i].status)
+				cout << setw(5) << right << "On" << endl;
+			else
+				cout << setw(5) << right << "Off" << endl;
+		}
+	}
 };
 
 class Sections
@@ -269,7 +269,7 @@ Appliances inputAppliance()
 		qty = getInt("Enter quantity: ");
 	status = getBool("Enter status(1 / 0) : ");
 	condition = getBool("Enter condition: (1 / 0): ");
-	return Appliances (name, power, qty, status, condition);
+	return Appliances(name, power, qty, status, condition);
 }
 
 
