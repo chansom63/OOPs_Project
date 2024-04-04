@@ -6,6 +6,15 @@
 #include<iomanip>
 using namespace std;
 
+
+// BUGS and ToDo's
+// Can't change the appliances status of same named appliance differently as they belong to same class due to quantity var
+// Same error reflects on current status function as it only outputs one time for same name appliance regardless of quantity
+// Report function gives warning on the basis of power rating of appliance which seems incorrect
+// report function should be added to each class
+
+
+
 // Error proof input functions
 void ignoreLine();
 double getDouble(string s);
@@ -321,6 +330,7 @@ int main()
 	Room a;
 	a.addAppliance();
 	a.addAppliance();
+	a.currentStatus();
 	a.report();
 }
 
