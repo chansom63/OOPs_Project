@@ -3,19 +3,12 @@
 #include <stdio.h>
 #include <vector>
 #include <limits>
-#include<iomanip>
+#include <iomanip>
+#include "Random.h"
 using namespace std;
 
-
-// BUGS and ToDo's
-// Can't change the appliances status of same named appliance differently as they belong to same class due to quantity var
-// Same error reflects on current status function as it only outputs one time for same name appliance regardless of quantity
-// Report function gives warning on the basis of power rating of appliance which seems incorrect
-// report function should be added to each class
-
-
-
 // Error proof input functions
+void clearScreen();
 void ignoreLine();
 double getDouble(string s);
 string getString(string a);
@@ -29,6 +22,9 @@ class Appliances
 	unsigned int qty;
 	bool status;
 	bool conditions;
+	vector <string> failure = { "Warning: risk of electric shock due to high current!", "Warning: risk of short circuit due to high power consumption!",
+	"Warning: potential physical damage to electronic components!", "Warning: risk of any malfunction!", "Warning: risk of over heating and equipment damage" };
+
 public:
 	Appliances() = default;
 	Appliances(string N, double P, unsigned int Q, bool S, bool C)
@@ -41,29 +37,29 @@ public:
 	}
 	// member functions here
 	// Report function
-	void report()  // edit
+	void report()  
 	{
-		vector<pair<string, pair<double, string>>> thresholds = {
-			{"Tube Light", {80, "Warning: risk of electric shock due to high current!"}},
-			{"Fan", {80, "Warning: risk of electric shock due to high current!"}},
-			{"LED lights", {80, "Warning: risk of electric shock due to high current!"}},
-			{"Projector", {100, "Warning: risk of short circuit due to high power consumption!"}},
-			{"amplifiers", {100, "Warning: risk of short circuit due to high power consumption!"}},
-			{"computer system", {500, "Warning: potential physical damage to electronic components!"}},
-			{"television", {500, "Warning: potential physical damage to electronic components!"}},
-			{"AC", {3000, "Warning: risk of any malfunction!"}},
-			{"d link router", {20, "Warning: risk of malfunctioning!"}},
-			{"water cooler", {500, "Warning: risk of over heating and equipment damage!"}},
-			{"speakers", {1000, "Warning: risk of malfunctioning!"}},
-			{"cctv", {15, "Warning: risk of electrical shock and over heating!"}}
-		};
-
-		for (const auto& threshold : thresholds) {
-			if (name == threshold.first && power > threshold.second.first) {
-				cout << threshold.second.second << endl;
-				return;
-			}
+		cout << "------------------------------------------------------------" << endl;
+		bool maintain = false;
+		int code = Random::get(0, 2 * failure.size());
+		int random = Random::get(50, 100);
+		int random1 = Random::get(0, 100);
+		cout << "Name: " << name << endl;
+		cout << "Status: " << status << endl;
+		cout << "Power Consumption: " << power << endl <<
+			"Energy Efficiency: " << random << endl;
+		if (code < failure.size())
+		{
+			conditions = 1;
+			cout << failure[code] << endl;
+			maintain = true;
 		}
+		cout << "Conditions: " << conditions << endl;
+
+		if ((random1 >= 0 && random1 <= 10) || maintain)
+			cout << "Maintainence required." << endl;
+		else
+			cout << "Maintainence not required. " << endl;
 	}
 	friend class Room;
 };
@@ -89,23 +85,27 @@ public:
 	{
 		appliances.push_back(inputAppliance());
 	}
+	void addAppliance(Appliances a)
+	{
+		appliances.push_back(a);
+	}
 	void currentStatus()
 	{
 		cout << "Current Status of Appliances in Room " << name << ":" << endl;
 		for (unsigned int i = 0; i < appliances.size(); ++i)
 		{
-			cout << "Appliance: " << setw(20) << left << appliances[i].name << " - Status: ";
+			cout << "Appliance: " << appliances[i].name << " - Status: ";
 			if (appliances[i].status)
-				cout << setw(5) << right << "On" << endl;
+				cout << "On" << endl;
 			else
-				cout << setw(5) << right << "Off" << endl;
+				cout << "Off" << endl;
 		}
 	}
 	void report() // add synonymous function to other classes as well
 	{
-		for (int i = 0; i < appliances.size(); i++)
+		for (auto& appliance : appliances)
 		{
-			appliances[i].report();
+			appliance.report();
 		}
 	}
 };
@@ -126,7 +126,13 @@ public:
 	{
 		appliances.push_back(inputAppliance());
 	}
-
+	void report()
+	{
+		for (auto& room : rooms)
+		{
+			room.report();
+		}
+	}
 };
 
 class PowerSource
@@ -161,6 +167,13 @@ public:
 		Rooms = rooms;
 	}
 	// member functions here
+	void report()
+	{
+		for (auto& section : sections)
+		{
+			section.report();
+		}
+	}
 };
 
 class ComplaintRecord;
@@ -325,13 +338,23 @@ Appliances inputAppliance()
 
 int main()
 {
-	ComplaintRecord R;
-	R.display();
-	Room a;
-	a.addAppliance();
-	a.addAppliance();
-	a.currentStatus();
-	a.report();
+	while (true)
+	{
+		Room a;
+		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
+		a.addAppliance(b);
+		a.report();
+		a.currentStatus();
+		bool clear;
+		clear = getBool("enter 1 to clear ");
+		if (clear)
+			clearScreen();
+	}
+}
+
+
+void clearScreen() {
+	std::cout << "\033[2J\033[1;1H"; // ANSI escape sequence to clear screen
 }
 
 // Error check functionalities
