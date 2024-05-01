@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <string>
 #include <stdio.h>
@@ -18,10 +20,11 @@ namespace Random {
 };
 
 string timeToString(time_t time) {
-    char buffer[80];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&time));
-    return string(buffer);
+	char buffer[80];
+	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&time));
+	return string(buffer);
 }
+
 // Error proof input functions
 void clearScreen();
 void ignoreLine();
@@ -37,8 +40,6 @@ class Appliances
 	unsigned int qty;
 	bool status;
 	bool conditions;
-	int maintenanceInterval;
-	time_t lastMaintenance;
 	vector <string> failure = { "Warning: risk of electric shock due to high current!", "Warning: risk of short circuit due to high power consumption!",
 	"Warning: potential physical damage to electronic components!", "Warning: risk of any malfunction!", "Warning: risk of over heating and equipment damage" };
 
@@ -51,75 +52,37 @@ public:
 		qty = Q;
 		status = S;
 		conditions = C;
-		lastMaintenance = time(0);
 
 	}
-	// member functions here
-	void getInterval(int interval) {
-		maintenanceInterval = interval;
-	}
-	void performEarthingMaintenance() {
-		time_t now = time(0);
-		cout << "Performing earthing maintenance for appliance: " << name << endl;
-		lastMaintenance = now; // Update last maintenance timestamp
-		cout << "Earthing maintenance completed for appliance: " << name << endl;
-	}
-
-
-	bool isMaintenanceDue() const {
-		time_t now = time(0);
-		int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
-		return daysSinceLastMaintenance >= maintenanceInterval;
-	}
-	void DynamicScheduling() {
-		cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
-
-		cout << "Appliance Name: " << name << endl;
-		cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
-
-		cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
-
-		if (isMaintenanceDue()) {
-			cout << "Maintenance is due. Performing maintenance..." << endl;
-			performMaintenance(); // You need to implement this method in the Appliance class
-			cout << "Maintenance completed." << endl;
-		}
-		else {
-			cout << "Maintenance is not due yet." << endl;
-		}
-		cout << endl;
-	}
-	cout << "Dynamic scheduling completed." << endl;
-}
 
 
 
-// Report function
-void report()
-{
-	cout << "------------------------------------------------------------" << endl;
-	bool maintain = false;
-	int code = Random::get(0, 2 * failure.size());
-	int random = Random::get(50, 100);
-	int random1 = Random::get(0, 100);
-	cout << "Name: " << name << endl;
-	cout << "Status: " << status << endl;
-	cout << "Power Consumption: " << power << endl <<
-		"Energy Efficiency: " << random << endl;
-	if (code < failure.size())
+	// Report function
+	void report()
 	{
-		conditions = 1;
-		cout << failure[code] << endl;
-		maintain = true;
-	}
-	cout << "Conditions: " << conditions << endl;
+		cout << "------------------------------------------------------------" << endl;
+		bool maintain = false;
+		int code = Random::get(0, 2 * failure.size());
+		int random = Random::get(50, 100);
+		int random1 = Random::get(0, 100);
+		cout << "Name: " << name << endl;
+		cout << "Status: " << status << endl;
+		cout << "Power Consumption: " << power << endl <<
+			"Energy Efficiency: " << random << endl;
+		if (code < failure.size())
+		{
+			conditions = 1;
+			cout << failure[code] << endl;
+			maintain = true;
+		}
+		cout << "Conditions: " << conditions << endl;
 
-	if ((random1 >= 0 && random1 <= 10) || maintain)
-		cout << "Maintainence required." << endl;
-	else
-		cout << "Maintainence not required. " << endl;
-}
-friend class Room;
+		if ((random1 >= 0 && random1 <= 10) || maintain)
+			cout << "Maintainence required." << endl;
+		else
+			cout << "Maintainence not required. " << endl;
+	}
+	friend class Room;
 };
 
 // forward declaration
@@ -166,11 +129,11 @@ public:
 			appliance.report();
 		}
 	}
-	void DynamicScheduling() {
-		for (auto& app : appliances) {
-			app.DynamicScheduling();
-		}
-	}
+	//        void DynamicScheduling(){
+	//		for(auto& app: appliances){
+	//			app.DynamicScheduling();
+	//		}
+	//	}
 };
 
 class Sections
@@ -196,11 +159,11 @@ public:
 			room.report();
 		}
 	}
-	void DynamicScheduling() {
-		for (auto& room : rooms) {
-			room.DynamicScheduling();
-		}
-	}
+	//void DynamicScheduling(){
+	//	for(auto& room:rooms){
+	//		room.DynamicScheduling();
+	//	}
+	//}
 };
 
 class PowerSource
@@ -223,7 +186,13 @@ class Admin
 	PowerSource Solar;
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
+	int maintenanceInterval; Admin() {
+		lastMaintenance = time(0) - 30 * 60 * 60 * 24 * 2;
+		maintenanceInterval = 30;
+	}
+	time_t lastMaintenance;
 public:
+
 	Admin(vector<Sections> section,
 		PowerSource solar,
 		PowerSource regularSupply,
@@ -233,7 +202,44 @@ public:
 		Solar = solar;
 		RegularSupply = regularSupply;
 		Rooms = rooms;
+		lastMaintenance = time(0) - 30 * 60 * 60 * 24 * 2;
+		maintenanceInterval = 30;
 	}
+
+
+	void performEarthingMaintenance() {
+		time_t now = time(0);
+		cout << "Performing earthing maintenance............................................... " << endl << endl;
+		lastMaintenance = now; // Update last maintenance timestamp
+		cout << "Earthing maintenance completed " << endl;
+	}
+
+
+	bool isMaintenanceDue() const {
+		time_t now = time(0);
+		int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
+		return daysSinceLastMaintenance >= maintenanceInterval;
+	}
+	void EarthingMaintainence() {
+		cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
+		cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
+
+		cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
+
+		if (isMaintenanceDue()) {
+			bool ch;
+			cout << "Maintenance is due...." << endl;
+			ch = getBool("\nPress 1 to perform maintenance:");
+			if (ch) { performEarthingMaintenance(); }
+			else cout << "\nMaintenance is due yet." << endl;
+		}
+		else {
+			cout << "Maintenance is not due yet." << endl;
+		}
+		cout << endl;
+		cout << "Dynamic scheduling completed." << endl;
+	}
+
 	// member functions here
 	void report()
 	{
@@ -242,11 +248,7 @@ public:
 			section.report();
 		}
 	}
-	void DynamicScheduling() {
-		for (auto& section : sections) {
-			section.DynamicScheduling();
-		}
-	}
+
 };
 
 class ComplaintRecord;
@@ -259,6 +261,7 @@ class Complaints
 	string Description;
 	string FaultLocation;
 	string Date;
+	string Action_Taken;
 	bool status;
 	friend class ComplaintRecord;
 public:
@@ -268,7 +271,7 @@ public:
 		string Description,
 		string Date,
 		bool status,
-		string FaultLocation)
+		string FaultLocation, string Action_Taken)
 	{
 		this->complaintID = complaintID;
 		this->complainant = complainant;
@@ -277,6 +280,7 @@ public:
 		Date = Date;
 		this->status = status;
 		this->FaultLocation = FaultLocation;
+		this->Action_Taken = Action_Taken;
 	}
 };
 
@@ -285,10 +289,10 @@ class ComplaintRecord {
 public:
 	ComplaintRecord()
 	{
-		Complaints c1("CN001", "Somesh Chandra", "6745910345", "Projector not Working", "25-03-24", 0, "LT-II 203");
-		Complaints c2("CN002", "Amit", "7459160345", "Sound System not Working", "28-03-24", 1, "LT-I 106");
-		Complaints c3("CN003", "Aman", "4591034985", "Fan not Working", "31-03-24", 0, "CSE LAB-C123A");
-		Complaints c4("CN004", "Sam", "5910376945", "System-21 not Working", "05-04-24", 0, "CEF GENERIC");
+		Complaints c1("CN001", "Somesh Chandra", "6745910345", "Projector not Working", "25-03-24", 0, "LT-II 203", "NIL");
+		Complaints c2("CN002", "Amit", "7459160345", "Sound System not Working", "28-03-24", 1, "LT-I 106", "Repaired");
+		Complaints c3("CN003", "Aman", "4591034985", "Fan not Working", "31-03-24", 0, "CSE LAB-C123A", "NIL");
+		Complaints c4("CN004", "Sam", "5910376945", "System-21 not Working", "05-04-24", 0, "CEF GENERIC", "NIL");
 		List.push_back(c1);
 		List.push_back(c2);
 		List.push_back(c3);
@@ -304,6 +308,7 @@ public:
 			<< "1.View Pending complaints." << endl
 			<< "2.View Resolved complaints." << endl
 			<< "3.View all Complaints" << endl
+			<< "4.Replace & Repair." << endl
 			<< "Press the key: " << endl;
 		cin >> selector;
 		if (!std::cin.eof() && std::cin.peek() != '\n')
@@ -319,6 +324,7 @@ public:
 			case '1':
 			case '2':
 			case '3':
+			case '4':
 				check = 1; break;
 			default:
 			ERROR:
@@ -347,6 +353,7 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
+				cout << "\nAction_Taken:" << List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
@@ -362,6 +369,7 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
+				cout << "\nAction_Taken:" << List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
@@ -377,11 +385,40 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
+				cout << "\nAction_Taken:" << List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
-		default:
-			cout << "\nInvalid Input";
+
+		case '4':
+			bool select;
+			string ID;
+			int i = 0;
+			ID = getString("\nEnter the Complaint ID:");
+			while (1) {
+				for (; i < List.size(); i++)
+				{
+					if (List[i].complaintID == ID) goto x;
+				}
+				i = 0;
+				cout << "\nInvalid ID,Enter the ID again:";
+				ID = getString("\nEnter the Complaint ID:");
+			}
+		x:
+			select = getBool("\nEnter 1 to replace 0 to repair:");
+			if (select) {
+				List[i].Action_Taken = "Replaced";
+				List[i].status = 1;
+				cout << "\nApliance Replaced.......................................";
+			}
+			else {
+				List[i].Action_Taken = "Repaired";
+				List[i].status = 1;
+				cout << "\nApliance Repaired.......................................";
+			}
+			break;
+
+
 		}
 		cout << "\n\n-----------------------------------------------------------------------------------------------\n";
 	}
@@ -411,14 +448,16 @@ Appliances inputAppliance()
 
 int main()
 {
+	ComplaintRecord c;
 	while (true)
 	{
-		Room a;
-		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
-		a.addAppliance(b);
-		a.report();
-		a.DynamicScheduling();
-		a.currentStatus();
+		//		Room a;
+		//		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
+		//		a.addAppliance(b);
+		//		a.report();
+		//		a.DynamicScheduling();
+		//		a.currentStatus();
+		c.display();
 		bool clear;
 		clear = getBool("enter 1 to clear ");
 		if (clear)
