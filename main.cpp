@@ -16,6 +16,12 @@ namespace Random {
 		else return value;
 	}
 };
+
+string timeToString(time_t time) {
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&time));
+    return string(buffer);
+}
 // Error proof input functions
 void clearScreen();
 void ignoreLine();
