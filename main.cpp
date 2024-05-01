@@ -4,7 +4,6 @@
 #include <vector>
 #include <limits>
 #include <iomanip>
-#include <ctime>
 #include "Random.h"
 using namespace std;
 
@@ -15,12 +14,6 @@ double getDouble(string s);
 string getString(string a);
 int getInt(string s);
 bool getBool(string s);
-
-std::string timeToString(time_t time) {
-    char buffer[80];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&time));
-    return std::string(buffer);
-}
 
 class Appliances
 {
@@ -44,7 +37,7 @@ public:
 	}
 	// member functions here
 	// Report function
-	void report()  
+	void report()
 	{
 		cout << "------------------------------------------------------------" << endl;
 		bool maintain = false;
@@ -255,7 +248,7 @@ public:
 			case '3':
 				check = 1; break;
 			default:
-				ERROR:
+			ERROR:
 				fflush(stdin);
 				cout << "\nInvalid input" << endl
 					<< "Press the key again: ";
@@ -321,151 +314,6 @@ public:
 	}
 };
 
-class EarthingMaintenance{
-private:
-    string name;
-    bool hasEarthing;
-    int energyConsumption; // Energy consumption in watts
-    int maintenanceInterval; // Maintenance interval in days
-    time_t lastMaintenance; // Timestamp of last maintenance
-public:
-
-void performMaintenance() {
-    time_t now = time(0);
-    lastMaintenance = now; // Update last maintenance timestamp
-}
-string getName() const {
-        return name;
-    }
-
-    bool checkEarthing() {
-        return hasEarthing;
-    }
-
-    void performEarthingMaintenance() {
-        time_t now = time(0);
-        cout << "Performing earthing maintenance for appliance: " << name << endl;
-        lastMaintenance = now; // Update last maintenance timestamp
-        cout << "Earthing maintenance completed for appliance: " << name << endl;
-    }
-
-    void logEnergyConsumption() {
-        time_t now = time(0);
-        cout << "Energy consumption for appliance: " << name << " : " << energyConsumption << " watts" << endl;
-    }
-
-    // Get energy consumption of the appliance
-    int getEnergyConsumption() const {
-        return energyConsumption;
-    }
-
-    // Get maintenance interval of the appliance
-    int getMaintenanceInterval() const {
-        return maintenanceInterval;
-    }
-
-    // Get last maintenance timestamp of the appliance
-    time_t getLastMaintenance() const {
-        return lastMaintenance;
-    }
-
-    // Check if maintenance is due for the appliance based on its maintenance interval
-    bool isMaintenanceDue() const {
-        time_t now = time(0);
-        int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
-        return daysSinceLastMaintenance >= maintenanceInterval;
-    }
-
-     void EarthingMaintenance(vector<Appliance>& appliances) {
-    cout << "Starting earthing maintenance for all appliances..." << endl;
-    for (Appliance& app : appliances) {
-        cout << "Appliance Name: " << app.getName() << endl;
-        cout << "Earthing Status: " << (app.checkEarthing() ? "Connected" : "Not Connected") << endl;
-        cout << "Power Consumption: " << app.getEnergyConsumption() << " watts" << endl;
-
-        if (!app.checkEarthing()) {
-            cout << "Performing earthing maintenance for appliance: " << app.getName() << endl;
-            app.performEarthingMaintenance();
-        }
-        cout << endl;
-    }
-    cout << "Earthing maintenance completed for all appliances." << endl;
-}
-
-
-void EnergyConsumptionMonitoring(vector<Appliance>& appliances) {
-    cout << "Logging energy consumption for all appliances..." << endl;
-    for (Appliance& app : appliances) {
-        app.logEnergyConsumption();
-    }
-    cout << "Energy consumption logged for all appliances." << endl;
-}
-
-void DynamicScheduling(vector<Appliance>& appliances) {
-    cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
-    for (Appliance& app : appliances) {
-        cout << "Appliance Name: " << app.getName() << endl;
-        cout << "Last Maintenance: " << timeToString(app.getLastMaintenance()) << endl;
-
-        cout << "Maintenance Interval: " << app.getMaintenanceInterval() << " days" << endl;
-
-        if (app.isMaintenanceDue()) {
-            cout << "Maintenance is due. Performing maintenance..." << endl;
-            app.performMaintenance(); // You need to implement this method in the Appliance class
-            cout << "Maintenance completed." << endl;
-        } else {
-            cout << "Maintenance is not due yet." << endl;
-        }
-        cout << endl;
-    }
-    cout << "Dynamic scheduling completed." << endl;
-}
-void display1(){
-	vector<Appliance> appliances;
-
-    appliances.push_back(Appliance("Fan", true, 50, 30)); // Example: Fan with earthing, consumes 50 watts, maintenance every 30 days
-    appliances.push_back(Appliance("Light", false, 30, 60)); // Example: Light without earthing, consumes 30 watts, maintenance every 60 days
-    appliances.push_back(Appliance("Computer", true, 200, 90)); // Example: Computer with earthing, consumes 200 watts, maintenance every 90 days
-    appliances.push_back(Appliance("Refrigerator", true, 150, 180)); // Example: Refrigerator with earthing, consumes 150 watts, maintenance every 180 days
-    appliances.push_back(Appliance("Television", false, 100, 120)); // Example: Television without earthing, consumes 100 watts, maintenance every 120 days
-    appliances.push_back(Appliance("Microwave", true, 1200, 150)); // Example: Microwave with earthing, consumes 1200 watts, maintenance every 150 days
-    appliances.push_back(Appliance("Washing Machine", true, 500, 120)); // Example: Washing Machine with earthing, consumes 500 watts, maintenance every 120 days
-    appliances.push_back(Appliance("Air Conditioner", true, 1500, 365)); // Example: Air Conditioner with earthing, consumes 1500 watts, maintenance every 365 days
-    appliances.push_back(Appliance("Coffee Maker", false, 800, 90)); // Example: Coffee Maker without earthing, consumes 800 watts, maintenance every 90 days
-
-    int choice;
-    do {
-        cout << "Choose an option:" << endl;
-        cout << "1. Perform earthing maintenance for all appliances" << endl;
-        cout << "2. Log energy consumption for all appliances" << endl;
-        cout << "3. Perform dynamic scheduling of maintenance tasks" << endl;
-        cout << "4. Exit" << endl;
-        cout << "Enter your choice: ";
-        cin >> choice;
-
-        switch (choice) {
-            case 1:
-                EarthingMaintenance(appliances);
-                break;
-            case 2:
-                EnergyConsumptionMonitoring(appliances);
-                break;
-            case 3:
-                DynamicScheduling(appliances);
-                break;
-            case 4:
-                cout << "Exiting program." << endl;
-                break;
-            default:
-                cout << "Invalid choice. Please enter a valid option." << endl;
-                break;
-        }
-    } while (choice != 4);
-}
-
-};
-
-
 // Input function for add appliances functionality
 
 Appliances inputAppliance()
@@ -490,16 +338,13 @@ Appliances inputAppliance()
 
 int main()
 {
-	
 	while (true)
 	{
 		Room a;
-		EarthingMaintenance e;
 		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
 		a.addAppliance(b);
-		a.currentStatus();
 		a.report();
-		e.display1();
+		a.currentStatus();
 		bool clear;
 		clear = getBool("enter 1 to clear ");
 		if (clear)
