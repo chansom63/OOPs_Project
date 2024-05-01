@@ -22,20 +22,61 @@ class Appliances
 	unsigned int qty;
 	bool status;
 	bool conditions;
+        int maintenanceInterval;
+        time_t lastMaintenance;
 	vector <string> failure = { "Warning: risk of electric shock due to high current!", "Warning: risk of short circuit due to high power consumption!",
 	"Warning: potential physical damage to electronic components!", "Warning: risk of any malfunction!", "Warning: risk of over heating and equipment damage" };
 
 public:
 	Appliances() = default;
-	Appliances(string N, double P, unsigned int Q, bool S, bool C)
+	Appliances(string N, double P, unsigned int Q, bool S, bool C, int interval)
 	{
 		name = N;
 		power = P;
 		qty = Q;
 		status = S;
 		conditions = C;
+		maintenanceInterval=interval;
+		lastMaintenance=time(0);
+		
 	}
 	// member functions here
+
+void performEarthingMaintenance() {
+        time_t now = time(0);
+        cout << "Performing earthing maintenance for appliance: " << name << endl;
+        lastMaintenance = now; // Update last maintenance timestamp
+        cout << "Earthing maintenance completed for appliance: " << name << endl;
+    }
+
+
+bool isMaintenanceDue() const {
+        time_t now = time(0);
+        int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
+        return daysSinceLastMaintenance >= maintenanceInterval;
+    }
+void DynamicScheduling() {
+    cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
+ 
+        cout << "Appliance Name: " <<name << endl;
+        cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
+
+        cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
+
+        if (isMaintenanceDue()) {
+            cout << "Maintenance is due. Performing maintenance..." << endl;
+            performMaintenance(); // You need to implement this method in the Appliance class
+            cout << "Maintenance completed." << endl;
+        } else {
+            cout << "Maintenance is not due yet." << endl;
+        }
+        cout << endl;
+    }
+    cout << "Dynamic scheduling completed." << endl;
+}
+
+
+
 	// Report function
 	void report()
 	{
@@ -108,6 +149,11 @@ public:
 			appliance.report();
 		}
 	}
+        void DynamicScheduling(){
+		for(auto& app: appliances){
+			app.DynamicScheduling();
+		}
+	}
 };
 
 class Sections
@@ -133,6 +179,11 @@ public:
 			room.report();
 		}
 	}
+void DynamicScheduling(){
+	for(auto& room:rooms){
+		room.DynamicScheduling();
+	}
+}
 };
 
 class PowerSource
@@ -172,6 +223,11 @@ public:
 		for (auto& section : sections)
 		{
 			section.report();
+		}
+	}
+        void DynamicScheduling(){
+		for(auto& section: sections){
+			section.DynamicScheduling();
 		}
 	}
 };
@@ -344,6 +400,7 @@ int main()
 		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
 		a.addAppliance(b);
 		a.report();
+		a.DynamicScheduling();
 		a.currentStatus();
 		bool clear;
 		clear = getBool("enter 1 to clear ");
