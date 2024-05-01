@@ -66,9 +66,9 @@ public:
 		cout << "Conditions: " << conditions << endl;
 
 		if ((random1 >= 0 && random1 <= 10) || maintain)
-			cout << "Maintainence required." << endl;
+			cout << "Maintenance required." << endl;
 		else
-			cout << "Maintainence not required. " << endl;
+			cout << "Maintenance not required. " << endl;
 	}
 	friend class Room;
 };
