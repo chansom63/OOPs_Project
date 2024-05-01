@@ -164,7 +164,13 @@ class Admin
 	PowerSource Solar;
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
+        int maintenanceInterval;
+        time_t lastMaintenance;
 public:
+	 Admin(){
+        lastMaintenance=time(0)-30*60*60*24*2;
+        maintenanceInterval=30;
+		}
 	Admin(vector<Sections> section,
 		PowerSource solar,
 		PowerSource regularSupply,
@@ -174,8 +180,41 @@ public:
 		Solar = solar;
 		RegularSupply = regularSupply;
 		Rooms = rooms;
+		lastMaintenance=time(0)-30*60*60*24*2;
+       		 maintenanceInterval=30;
 	}
 	// member functions here
+	void performEarthingMaintenance() {
+        time_t now = time(0);
+        cout << "Performing earthing maintenance............................................... "<<endl<<endl;
+        lastMaintenance = now; // Update last maintenance timestamp
+        cout << "Earthing maintenance completed " <<endl;
+    }
+	bool isMaintenanceDue() const {
+        time_t now = time(0);
+        int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
+        return daysSinceLastMaintenance >= maintenanceInterval;
+    }
+
+void EarthingMaintainence() {
+    cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
+        cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
+
+        cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
+
+        if (isMaintenanceDue()) {
+            bool ch;
+            cout << "Maintenance is due...." << endl;
+            ch=getBool("\nPress 1 to perform maintenance:");
+            if(ch) {performEarthingMaintenance(); }
+            else cout<<"\nMaintenance is due yet."<<endl;
+        } else {
+            cout << "Maintenance is not due yet." << endl;
+        }
+        cout << endl;
+         cout << "Dynamic scheduling completed." << endl;
+    }
+
 	void report()
 	{
 		for (auto& section : sections)
