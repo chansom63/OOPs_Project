@@ -29,19 +29,20 @@ class Appliances
 
 public:
 	Appliances() = default;
-	Appliances(string N, double P, unsigned int Q, bool S, bool C, int interval)
+	Appliances(string N, double P, unsigned int Q, bool S, bool C)
 	{
 		name = N;
 		power = P;
 		qty = Q;
 		status = S;
 		conditions = C;
-		maintenanceInterval=interval;
 		lastMaintenance=time(0);
 		
 	}
 	// member functions here
-
+void getInterval(int interval){
+	maintenanceInterval=interval;
+}
 void performEarthingMaintenance() {
         time_t now = time(0);
         cout << "Performing earthing maintenance for appliance: " << name << endl;
