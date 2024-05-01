@@ -9,6 +9,7 @@
 #include <limits>
 #include <iomanip>
 #include <cstdlib>
+#include <Windows.h>
 using namespace std;
 namespace Random {
 	unsigned int get(int start, int End)
@@ -368,7 +369,7 @@ public:
 		cin >> selector;
 		if (!std::cin.eof() && std::cin.peek() != '\n')
 		{
-			goto ERROR;
+			goto ERRORE;
 		}
 
 		//Checker block
@@ -382,7 +383,7 @@ public:
 			case '4':
 				check = 1; break;
 			default:
-			ERROR:
+			ERRORE:
 				fflush(stdin);
 				cout << "\nInvalid input" << endl
 					<< "Press the key again: ";
@@ -390,7 +391,7 @@ public:
 				cin >> selector;
 				if (!std::cin.eof() && std::cin.peek() != '\n')
 				{
-					goto ERROR;
+					goto ERRORE;
 				}
 			}
 		}
@@ -503,7 +504,7 @@ Appliances inputAppliance()
 
 // functionality for location based function call 
 			
-variant<Admin, Sections, Room, Appliances> parseLocation(string& loc, vector<Admin>& obj, bool& success) // parse the location and return the reference of appropriate object based on it
+variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin>& obj, bool& success) // parse the location and return the reference of appropriate object based on it
 {
 	// location will be in the form A/B/C/D
 	// we can ignore leading and ending spaces and capitalization
@@ -590,27 +591,119 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string& loc, vector<Adm
 }
 
 
+// bools for different sections
+bool u_main = false;
+bool u_status = false;
+bool u_blueprint = false;
+bool u_analysis = false;
+bool u_configure = false;
+bool u_home = true;
+bool running = true;
+
+// enum for sections
+namespace pages
+{
+	enum sect
+	{
+		Home = 0,
+		BluePrint = 1,
+		Maintainence = 2,
+		Status = 3,
+		Configure = 4,
+		Analysis = 5
+	};
+}
+
+
+void toggle(pages::sect type) // to toggle a single section on the screen
+{
+	clearScreen();
+	u_main = false;
+	u_status = false;
+	u_blueprint = false;
+	u_analysis = false;
+	u_configure = false;
+	u_home = false;
+	switch (type)
+	{
+	case pages::Maintainence:
+		u_main = true;
+		break;
+	case pages::Status:
+		u_status = true;
+		break;
+	case pages::BluePrint:
+		u_blueprint = true;
+		break;
+	case pages::Home:
+		u_home = true;
+		break;
+	case pages::Analysis:
+		u_analysis = true;
+		break;
+	case pages::Configure:
+		u_configure = true;
+		break;
+	default:
+		u_home = true;
+	}
+}
+
+void putSpace(int s)
+{
+	for (int i = 0; i < s; i++)
+	{
+		cout << ' ';
+	}
+}
+
+void putLine(int s)
+{
+	for (int i = 0; i < s; i++)
+	{
+		cout << endl;
+	}
+}
+
+string locate = "blocka";
+variant< Admin, Sections, Room, Appliances> var;
+
+// Function to set text color
+// Define color constants
+enum ConsoleColor {
+	Black = 0,
+	Blue = 1,
+	Green = 2,
+	Cyan = 3,
+	Red = 4,
+	Magenta = 5,
+	Brown = 6,
+	LightGray = 7,
+	DarkGray = 8,
+	LightBlue = 9,
+	LightGreen = 10,
+	LightCyan = 11,
+	LightRed = 12,
+	LightMagenta = 13,
+	Yellow = 14,
+	White = 15
+};
+
+void setColor(ConsoleColor text = White, ConsoleColor background = Black) {
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (WORD)((background << 4) | text));
+}
+
+
 int main()
 {
-	ComplaintRecord c;
-
-	//		Room a;
-	//		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
-	//		a.addAppliance(b);
-	//		a.report();
-	//		a.DynamicScheduling();
-	//		a.currentStatus();
-	//		testing the parsing
+	// populate the database here
 	Appliances a("bulb", 20, 2, 1, 1);
 	Room b({ a }, "class", 1);
 	Sections d({ b }, {}, "lt1");
 	Admin e({ d }, PowerSource(3, 2), PowerSource(3, 2), {}, "blocka");
-	string l = "blockA/lt1";
-	bool s = true;
 	vector<Admin> pass = { e };
-	variant< Admin, Sections, Room, Appliances> var = parseLocation(l, pass, s);
-	if (s == false) return 0;
-	// Define a lambda to call the report function
+
+	// lambdas to use 
 	auto reportFunc = [](auto& obj) {
 		obj.report();
 		};
@@ -618,9 +711,145 @@ int main()
 		obj.currentStatus();
 		};
 
-	// Call the report function through std::visit
-	visit(reportFunc, var);
-	visit(currentStatusFunc, var);
+	// main interface loop
+	while (running)
+	{
+		if (u_home)
+		{
+			setColor(Yellow, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|      POWER MANAGEMENT SYSTEM     |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+			setColor(Cyan, Black);
+			putLine(3);
+			cout << "1 Blueprint" << endl << endl;
+			cout << "2 Maintainance" << endl << endl;
+			cout << "3 Status" << endl << endl;
+			cout << "4 Configure" << endl << endl;
+			cout << "5 Analysis" << endl << endl;
+			cout << "6 Change location" << endl << endl;
+			cout << "7 Clear screen" << endl << endl;
+			cout << "8 Exit" << endl << endl;
+			setColor();
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+
+			if (ask == 6) // for changing location
+			{
+				bool s = false;
+				while (!s)
+				{
+					locate = getString("Enter location: ");
+					var = parseLocation(locate, pass, s); // to check if location is true or false
+					if (!s) cout << "Location inaccessible, please write correct location" << endl;
+				}
+			}
+			if (ask == 8)
+			{
+				running = false;
+			}
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_main)
+		{
+			setColor(LightCyan, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|           MAINTAINANCE           |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+			putLine(3);
+
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_status)
+		{
+			setColor(Brown, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|              STATUS              |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_blueprint)
+		{
+			setColor(Blue, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|             BLUEPRINT            |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_analysis)
+		{
+			setColor(LightGreen, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|             ANALYSIS             |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_configure)
+		{
+			setColor(Red, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|          CONFIGURATION           |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+	}
+	putLine(25);
+	putSpace(15);
+	setColor(Black, Green);
+	putSpace(40);
+	cout << "Thank you for using Power Management System.";
+	putSpace(40);
+	setColor();
+	putLine(25);
 }
 
 
@@ -631,7 +860,7 @@ void clearScreen() {
 // Error check functionalities
 void ignoreLine()
 {
-	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	std::cin.ignore(100, '\n');
 }
 
 double getDouble(string s)
