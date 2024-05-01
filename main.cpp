@@ -108,9 +108,9 @@ void DynamicScheduling() {
 		cout << "Conditions: " << conditions << endl;
 
 		if ((random1 >= 0 && random1 <= 10) || maintain)
-			cout << "Maintenance required." << endl;
+			cout << "Maintainence required." << endl;
 		else
-			cout << "Maintenance not required. " << endl;
+			cout << "Maintainence not required. " << endl;
 	}
 	friend class Room;
 };
@@ -216,13 +216,7 @@ class Admin
 	PowerSource Solar;
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
-        int maintenanceInterval;
-        time_t lastMaintenance;
 public:
-	 Admin(){
-        lastMaintenance=time(0)-30*60*60*24*2;
-        maintenanceInterval=30;
-		}
 	Admin(vector<Sections> section,
 		PowerSource solar,
 		PowerSource regularSupply,
@@ -232,41 +226,8 @@ public:
 		Solar = solar;
 		RegularSupply = regularSupply;
 		Rooms = rooms;
-		lastMaintenance=time(0)-30*60*60*24*2;
-       		 maintenanceInterval=30;
 	}
 	// member functions here
-	void performEarthingMaintenance() {
-        time_t now = time(0);
-        cout << "Performing earthing maintenance............................................... "<<endl<<endl;
-        lastMaintenance = now; // Update last maintenance timestamp
-        cout << "Earthing maintenance completed " <<endl;
-    }
-	bool isMaintenanceDue() const {
-        time_t now = time(0);
-        int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
-        return daysSinceLastMaintenance >= maintenanceInterval;
-    }
-
-void EarthingMaintainence() {
-    cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
-        cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
-
-        cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
-
-        if (isMaintenanceDue()) {
-            bool ch;
-            cout << "Maintenance is due...." << endl;
-            ch=getBool("\nPress 1 to perform maintenance:");
-            if(ch) {performEarthingMaintenance(); }
-            else cout<<"\nMaintenance is due yet."<<endl;
-        } else {
-            cout << "Maintenance is not due yet." << endl;
-        }
-        cout << endl;
-         cout << "Dynamic scheduling completed." << endl;
-    }
-
 	void report()
 	{
 		for (auto& section : sections)
@@ -291,7 +252,6 @@ class Complaints
 	string Description;
 	string FaultLocation;
 	string Date;
-	string Action_Taken;
 	bool status;
 	friend class ComplaintRecord;
 public:
@@ -301,7 +261,7 @@ public:
 		string Description,
 		string Date,
 		bool status,
-		string FaultLocation,string Action_Taken)
+		string FaultLocation)
 	{
 		this->complaintID = complaintID;
 		this->complainant = complainant;
@@ -310,7 +270,6 @@ public:
 		Date = Date;
 		this->status = status;
 		this->FaultLocation = FaultLocation;
-		this->Action_Taken=Action_Taken;
 	}
 };
 
@@ -319,10 +278,10 @@ class ComplaintRecord {
 public:
 	ComplaintRecord()
 	{
-		Complaints c1("CN001", "Somesh Chandra", "6745910345", "Projector not Working", "25-03-24", 0, "LT-II 203","NIL");
-		Complaints c2("CN002", "Amit", "7459160345", "Sound System not Working", "28-03-24", 1, "LT-I 106","Repaired");
-		Complaints c3("CN003", "Aman", "4591034985", "Fan not Working", "31-03-24", 0, "CSE LAB-C123A","NIL");
-		Complaints c4("CN004", "Sam", "5910376945", "System-21 not Working", "05-04-24", 0, "CEF GENERIC","NIL");
+		Complaints c1("CN001", "Somesh Chandra", "6745910345", "Projector not Working", "25-03-24", 0, "LT-II 203");
+		Complaints c2("CN002", "Amit", "7459160345", "Sound System not Working", "28-03-24", 1, "LT-I 106");
+		Complaints c3("CN003", "Aman", "4591034985", "Fan not Working", "31-03-24", 0, "CSE LAB-C123A");
+		Complaints c4("CN004", "Sam", "5910376945", "System-21 not Working", "05-04-24", 0, "CEF GENERIC");
 		List.push_back(c1);
 		List.push_back(c2);
 		List.push_back(c3);
@@ -338,7 +297,6 @@ public:
 			<< "1.View Pending complaints." << endl
 			<< "2.View Resolved complaints." << endl
 			<< "3.View all Complaints" << endl
-			<<"4.Replace & Repair."<<endl
 			<< "Press the key: " << endl;
 		cin >> selector;
 		if (!std::cin.eof() && std::cin.peek() != '\n')
@@ -354,7 +312,6 @@ public:
 			case '1':
 			case '2':
 			case '3':
-            case '4':
 				check = 1; break;
 			default:
 			ERROR:
@@ -383,7 +340,6 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
-				cout<<"\nAction_Taken:"<<List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
@@ -399,7 +355,6 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
-					cout<<"\nAction_Taken:"<<List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
@@ -415,43 +370,16 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
-					cout<<"\nAction_Taken:"<<List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
-
-        case '4':
-            bool select;
-            string ID;
-            int i=0;
-            ID=getString("\nEnter the Complaint ID:");
-            while(1){
-            for(;i<List.size();i++)
-            {
-                if(List[i].complaintID==ID) goto x;
-            }
-            i=0;
-             cout<<"\nInvalid ID,Enter the ID again:";
-             ID=getString("\nEnter the Complaint ID:");
-            }
-            x:
-            select=getBool("\nEnter 1 to replace 0 to repair:");
-            if(select) {
-                    List[i].Action_Taken="Replaced";
-                    List[i].status=1;
-                    cout<<"\nApliance Replaced.......................................";
-            }
-            else {List[i].Action_Taken="Repaired";
-            List[i].status=1;
-            cout<<"\nApliance Repaired.......................................";
-            }
-            break;
-
-
+		default:
+			cout << "\nInvalid Input";
 		}
 		cout << "\n\n-----------------------------------------------------------------------------------------------\n";
 	}
 };
+
 // Input function for add appliances functionality
 
 Appliances inputAppliance()
