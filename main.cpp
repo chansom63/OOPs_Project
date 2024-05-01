@@ -4,9 +4,18 @@
 #include <vector>
 #include <limits>
 #include <iomanip>
-#include "Random.h"
+#include <cstdlib>
 using namespace std;
-
+namespace Random{
+    unsigned int get(int start,int End)
+    {
+        int value;
+        srand(time(0));
+        value=rand()%End;
+      if(value<start) return value+start;
+      else return value;
+    }
+};
 // Error proof input functions
 void clearScreen();
 void ignoreLine();
