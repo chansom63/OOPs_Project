@@ -61,7 +61,7 @@ public:
 	// Report function
 	void report()
 	{
-		cout << "Report of appliance " << name << endl;
+		cout << "Report of appliance " << name << endl << endl;
 		bool maintain = false;
 		int code = Random::get(0, 2 * failure.size());
 		int random = Random::get(50, 100);
@@ -82,6 +82,7 @@ public:
 			cout << "Maintainence required." << endl;
 		else
 			cout << "Maintainence not required. " << endl;
+		cout << endl;
 	}
 	// current status function
 	void currentStatus()
@@ -123,7 +124,7 @@ public:
 	}
 	void currentStatus() // updated
 	{
-		cout << "Current Status of Appliances in Room " << name << ":" << endl;
+		cout << "Current Status of Appliances in Room " << name << ":" << endl << endl;
 		for (unsigned int i = 0; i < appliances.size(); ++i)
 		{
 			appliances[i].currentStatus();
@@ -132,7 +133,7 @@ public:
 	string& getName() { return name; }
 	void report() // add synonymous function to other classes as well
 	{
-		cout << "Report of room " << name << endl;
+		cout << "Report of room " << name << endl << endl;
 		for (auto& appliance : appliances)
 		{
 			appliance.report();
@@ -166,7 +167,7 @@ public:
 	// member functions here
 	void currentStatus()
 	{
-		cout << "Current Status of Appliances in Section " << name << ":" << endl;
+		cout << "Current Status of Appliances in Section " << name << ":" << endl << endl;
 		for (auto& app : appliances)
 		{
 			app.currentStatus();
@@ -183,7 +184,7 @@ public:
 	}
 	void report()
 	{
-		cout << "Report of section " << name << endl;
+		cout << "Report of section " << name << endl << endl;
 		for (auto& app : appliances)
 		{
 			app.report();
@@ -248,7 +249,7 @@ public:
 	vector<Sections>& getSections () { return sections; } 
 	void currentStatus()
 	{
-		cout << "Current Status of Appliances in Admin " << name << ":" << endl;
+		cout << "Current Status of Appliances in Admin " << name << ":" << endl << endl;
 		for (auto& room : Rooms)
 		{
 			room.currentStatus();
@@ -294,7 +295,7 @@ public:
 	// member functions here
 	void report()
 	{
-		cout << "Report of Admin " << name << endl;
+		cout << "Report of Admin " << name << endl << endl;
 		for (auto& room : Rooms)
 		{
 			room.report();
@@ -504,7 +505,7 @@ Appliances inputAppliance()
 
 // functionality for location based function call 
 			
-variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin>& obj, bool& success) // parse the location and return the reference of appropriate object based on it
+variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success) // parse the location and return the reference of appropriate object based on it
 {
 	// location will be in the form A/B/C/D
 	// we can ignore leading and ending spaces and capitalization
@@ -665,7 +666,7 @@ void putLine(int s)
 	}
 }
 
-string locate = "blocka";
+string locate = "admin1";
 variant< Admin, Sections, Room, Appliances> var;
 
 // Function to set text color
@@ -697,11 +698,35 @@ void setColor(ConsoleColor text = White, ConsoleColor background = Black) {
 int main()
 {
 	// populate the database here
-	Appliances a("bulb", 20, 2, 1, 1);
-	Room b({ a }, "class", 1);
-	Sections d({ b }, {}, "lt1");
-	Admin e({ d }, PowerSource(3, 2), PowerSource(3, 2), {}, "blocka");
-	vector<Admin> pass = { e };
+	
+	// SAMPLE DATA
+	
+	// appliances
+	Appliances bulb("bulb", 20, 2, true, true);
+	Appliances fan("fan", 30, 1, true, true);
+	Appliances ac("ac", 1500, 1, false, false);
+	Appliances laptop("laptop", 200, 10, true, true);
+	Appliances printer("printer", 100, 1, false, false);
+
+	// Create rooms and add appliances to them
+	Room room101({ bulb, fan }, "room101", 1);
+	Room room102({ fan, ac }, "room102", 1);
+	Room room201({ bulb, laptop, fan }, "room201", 1);
+	Room room202({ fan }, "room202", 1);
+	Room room301({ bulb, fan, printer, laptop }, "room301", 1);
+
+	// Create sections and add rooms to them
+	Sections sectionA({ room101, room102 }, { bulb, fan }, "sectiona");
+	Sections sectionB({ room201, room202 }, { printer, laptop }, "sectionb");
+	Sections sectionC({ room301 }, { ac, bulb, fan }, "sectionc");
+
+	// Create admins and add sections to them
+	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin1");
+	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin2");
+
+	vector<Admin> pass = { admin1, admin2 };
+	var = parseLocation(locate, pass, running);
+
 
 	// lambdas to use 
 	auto reportFunc = [](auto& obj) {
@@ -785,7 +810,13 @@ int main()
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
 			cout << "Location: " << locate << endl;
-
+			putLine(5);
+			setColor(LightGreen, Black);
+			// display status
+			visit(reportFunc, var);
+			putLine(5);
+			visit(currentStatusFunc, var);
+			setColor();
 			putLine(3);
 			int ask = getInt("Enter your choice: ");
 			toggle(static_cast<pages::sect> (ask));
