@@ -6,15 +6,15 @@
 #include <iomanip>
 #include <cstdlib>
 using namespace std;
-namespace Random{
-    unsigned int get(int start,int End)
-    {
-        int value;
-        srand(time(0));
-        value=rand()%End;
-      if(value<start) return value+start;
-      else return value;
-    }
+namespace Random {
+	unsigned int get(int start, int End)
+	{
+		int value;
+		srand(time(0));
+		value = rand() % End;
+		if (value < start) return value + start;
+		else return value;
+	}
 };
 // Error proof input functions
 void clearScreen();
@@ -31,8 +31,8 @@ class Appliances
 	unsigned int qty;
 	bool status;
 	bool conditions;
-        int maintenanceInterval;
-        time_t lastMaintenance;
+	int maintenanceInterval;
+	time_t lastMaintenance;
 	vector <string> failure = { "Warning: risk of electric shock due to high current!", "Warning: risk of short circuit due to high power consumption!",
 	"Warning: potential physical damage to electronic components!", "Warning: risk of any malfunction!", "Warning: risk of over heating and equipment damage" };
 
@@ -45,74 +45,75 @@ public:
 		qty = Q;
 		status = S;
 		conditions = C;
-		lastMaintenance=time(0);
-		
+		lastMaintenance = time(0);
+
 	}
 	// member functions here
-void getInterval(int interval){
-	maintenanceInterval=interval;
-}
-void performEarthingMaintenance() {
-        time_t now = time(0);
-        cout << "Performing earthing maintenance for appliance: " << name << endl;
-        lastMaintenance = now; // Update last maintenance timestamp
-        cout << "Earthing maintenance completed for appliance: " << name << endl;
-    }
-
-
-bool isMaintenanceDue() const {
-        time_t now = time(0);
-        int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
-        return daysSinceLastMaintenance >= maintenanceInterval;
-    }
-void DynamicScheduling() {
-    cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
- 
-        cout << "Appliance Name: " <<name << endl;
-        cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
-
-        cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
-
-        if (isMaintenanceDue()) {
-            cout << "Maintenance is due. Performing maintenance..." << endl;
-            performMaintenance(); // You need to implement this method in the Appliance class
-            cout << "Maintenance completed." << endl;
-        } else {
-            cout << "Maintenance is not due yet." << endl;
-        }
-        cout << endl;
-    }
-    cout << "Dynamic scheduling completed." << endl;
-}
-
-
-
-	// Report function
-	void report()
-	{
-		cout << "------------------------------------------------------------" << endl;
-		bool maintain = false;
-		int code = Random::get(0, 2 * failure.size());
-		int random = Random::get(50, 100);
-		int random1 = Random::get(0, 100);
-		cout << "Name: " << name << endl;
-		cout << "Status: " << status << endl;
-		cout << "Power Consumption: " << power << endl <<
-			"Energy Efficiency: " << random << endl;
-		if (code < failure.size())
-		{
-			conditions = 1;
-			cout << failure[code] << endl;
-			maintain = true;
-		}
-		cout << "Conditions: " << conditions << endl;
-
-		if ((random1 >= 0 && random1 <= 10) || maintain)
-			cout << "Maintainence required." << endl;
-		else
-			cout << "Maintainence not required. " << endl;
+	void getInterval(int interval) {
+		maintenanceInterval = interval;
 	}
-	friend class Room;
+	void performEarthingMaintenance() {
+		time_t now = time(0);
+		cout << "Performing earthing maintenance for appliance: " << name << endl;
+		lastMaintenance = now; // Update last maintenance timestamp
+		cout << "Earthing maintenance completed for appliance: " << name << endl;
+	}
+
+
+	bool isMaintenanceDue() const {
+		time_t now = time(0);
+		int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
+		return daysSinceLastMaintenance >= maintenanceInterval;
+	}
+	void DynamicScheduling() {
+		cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
+
+		cout << "Appliance Name: " << name << endl;
+		cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
+
+		cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
+
+		if (isMaintenanceDue()) {
+			cout << "Maintenance is due. Performing maintenance..." << endl;
+			performMaintenance(); // You need to implement this method in the Appliance class
+			cout << "Maintenance completed." << endl;
+		}
+		else {
+			cout << "Maintenance is not due yet." << endl;
+		}
+		cout << endl;
+	}
+	cout << "Dynamic scheduling completed." << endl;
+}
+
+
+
+// Report function
+void report()
+{
+	cout << "------------------------------------------------------------" << endl;
+	bool maintain = false;
+	int code = Random::get(0, 2 * failure.size());
+	int random = Random::get(50, 100);
+	int random1 = Random::get(0, 100);
+	cout << "Name: " << name << endl;
+	cout << "Status: " << status << endl;
+	cout << "Power Consumption: " << power << endl <<
+		"Energy Efficiency: " << random << endl;
+	if (code < failure.size())
+	{
+		conditions = 1;
+		cout << failure[code] << endl;
+		maintain = true;
+	}
+	cout << "Conditions: " << conditions << endl;
+
+	if ((random1 >= 0 && random1 <= 10) || maintain)
+		cout << "Maintainence required." << endl;
+	else
+		cout << "Maintainence not required. " << endl;
+}
+friend class Room;
 };
 
 // forward declaration
@@ -159,8 +160,8 @@ public:
 			appliance.report();
 		}
 	}
-        void DynamicScheduling(){
-		for(auto& app: appliances){
+	void DynamicScheduling() {
+		for (auto& app : appliances) {
 			app.DynamicScheduling();
 		}
 	}
@@ -189,11 +190,11 @@ public:
 			room.report();
 		}
 	}
-void DynamicScheduling(){
-	for(auto& room:rooms){
-		room.DynamicScheduling();
+	void DynamicScheduling() {
+		for (auto& room : rooms) {
+			room.DynamicScheduling();
+		}
 	}
-}
 };
 
 class PowerSource
@@ -235,8 +236,8 @@ public:
 			section.report();
 		}
 	}
-        void DynamicScheduling(){
-		for(auto& section: sections){
+	void DynamicScheduling() {
+		for (auto& section : sections) {
 			section.DynamicScheduling();
 		}
 	}
