@@ -182,6 +182,7 @@ public:
 
 class Admin
 {
+	string name;
 	vector<Sections> sections;
 	PowerSource Solar;
 	PowerSource RegularSupply;
