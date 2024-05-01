@@ -3,7 +3,9 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
+#include <algorithm>
 #include <vector>
+#include <variant>
 #include <limits>
 #include <iomanip>
 #include <cstdlib>
@@ -54,13 +56,11 @@ public:
 		conditions = C;
 
 	}
-
-
-
+	string& getName() { return name; }
 	// Report function
 	void report()
 	{
-		cout << "------------------------------------------------------------" << endl;
+		cout << "Report of appliance " << name << endl;
 		bool maintain = false;
 		int code = Random::get(0, 2 * failure.size());
 		int random = Random::get(50, 100);
@@ -82,6 +82,15 @@ public:
 		else
 			cout << "Maintainence not required. " << endl;
 	}
+	// current status function
+	void currentStatus()
+	{
+		cout << "Appliance: " << name << " - Status: ";
+		if (status)
+			cout << "On" << endl;
+		else
+			cout << "Off" << endl;
+	}
 	friend class Room;
 };
 
@@ -102,6 +111,7 @@ public:
 		qty = q;
 	}
 	// member functions here
+	vector<Appliances>& getAppliances() { return appliances; }
 	void addAppliance()
 	{
 		appliances.push_back(inputAppliance());
@@ -110,20 +120,18 @@ public:
 	{
 		appliances.push_back(a);
 	}
-	void currentStatus()
+	void currentStatus() // updated
 	{
 		cout << "Current Status of Appliances in Room " << name << ":" << endl;
 		for (unsigned int i = 0; i < appliances.size(); ++i)
 		{
-			cout << "Appliance: " << appliances[i].name << " - Status: ";
-			if (appliances[i].status)
-				cout << "On" << endl;
-			else
-				cout << "Off" << endl;
+			appliances[i].currentStatus();
 		}
 	}
+	string& getName() { return name; }
 	void report() // add synonymous function to other classes as well
 	{
+		cout << "Report of room " << name << endl;
 		for (auto& appliance : appliances)
 		{
 			appliance.report();
@@ -142,23 +150,49 @@ class Sections
 	vector<Appliances> appliances;
 	string name;
 public:
+	Sections() = default;
 	Sections(vector<Room> r, vector<Appliances> a)
 	{
 		rooms = r;
 		appliances = a;
 	}
+	Sections(vector<Room> r, vector<Appliances> a, string n)
+	{
+		rooms = r;
+		appliances = a;
+		name = n;
+	}
 	// member functions here
+	void currentStatus()
+	{
+		cout << "Current Status of Appliances in Section " << name << ":" << endl;
+		for (auto& app : appliances)
+		{
+			app.currentStatus();
+		}
+		for (auto& room : rooms)
+		{
+			room.currentStatus();
+		}
+	}
+	vector<Room>& getRooms() { return rooms; }
 	void addAppliance()
 	{
 		appliances.push_back(inputAppliance());
 	}
 	void report()
 	{
+		cout << "Report of section " << name << endl;
+		for (auto& app : appliances)
+		{
+			app.report();
+		}
 		for (auto& room : rooms)
 		{
 			room.report();
 		}
 	}
+	string& getName() { return name; }
 	//void DynamicScheduling(){
 	//	for(auto& room:rooms){
 	//		room.DynamicScheduling();
@@ -187,17 +221,17 @@ class Admin
 	PowerSource Solar;
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
-	int maintenanceInterval; Admin() {
+	int maintenanceInterval; 
+	time_t lastMaintenance;
+public:
+	Admin() {
 		lastMaintenance = time(0) - 30 * 60 * 60 * 24 * 2;
 		maintenanceInterval = 30;
 	}
-	time_t lastMaintenance;
-public:
-
 	Admin(vector<Sections> section,
 		PowerSource solar,
 		PowerSource regularSupply,
-		vector<Room> rooms)
+		vector<Room> rooms, string n)
 	{
 		sections = section;
 		Solar = solar;
@@ -205,9 +239,24 @@ public:
 		Rooms = rooms;
 		lastMaintenance = time(0) - 30 * 60 * 60 * 24 * 2;
 		maintenanceInterval = 30;
+		name = n;
 	}
 
+	string& getName() { return name; }
 
+	vector<Sections>& getSections () { return sections; } 
+	void currentStatus()
+	{
+		cout << "Current Status of Appliances in Admin " << name << ":" << endl;
+		for (auto& room : Rooms)
+		{
+			room.currentStatus();
+		}
+		for (auto& section : sections)
+		{
+			section.currentStatus();
+		}
+	}
 	void performEarthingMaintenance() {
 		time_t now = time(0);
 		cout << "Performing earthing maintenance............................................... " << endl << endl;
@@ -244,6 +293,11 @@ public:
 	// member functions here
 	void report()
 	{
+		cout << "Report of Admin " << name << endl;
+		for (auto& room : Rooms)
+		{
+			room.report();
+		}
 		for (auto& section : sections)
 		{
 			section.report();
@@ -447,23 +501,126 @@ Appliances inputAppliance()
 }
 
 
+// functionality for location based function call 
+			
+variant<Admin, Sections, Room, Appliances> parseLocation(string& loc, vector<Admin>& obj, bool& success) // parse the location and return the reference of appropriate object based on it
+{
+	// location will be in the form A/B/C/D
+	// we can ignore leading and ending spaces and capitalization
+	success = true;
+	int k = loc.size();
+	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+	int i = 0;
+	vector<string> processed; // get the processed words from string
+	while (i < k)
+	{
+		string temp;
+		while (i != k && loc[i] != '/')
+		{
+			if (loc[i] != ' ')
+				temp += loc[i];
+			i++;
+		}
+		i++;
+		processed.push_back(temp);
+	}
+	int level = processed.size();
+	Admin ret; // update codebase
+	// find the right admin
+	success = false;
+	Admin& t1 = obj[0];
+	for (auto& a : obj)
+	{
+		if (a.getName().compare(processed[0]) == 0)  // update codebase
+		{
+			t1 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 1) return t1;
+
+	// find the right section
+	success = false;
+	vector<Sections>& temp1 = t1.getSections(); // update codebase
+	Sections& t2 = temp1[0];
+	for (auto& a : temp1)
+	{
+		if (a.getName().compare(processed[1]) == 0)
+		{
+			t2 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 2) return t2;
+
+	// find the right room
+	success = false;
+	vector<Room>& temp2 = t2.getRooms(); // update codebase
+	Room& t3 = temp2[0];
+	for (auto& a : temp2)
+	{
+		if (a.getName().compare(processed[2]) == 0)
+		{
+			t3 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 3) return t3;
+
+	// find the right appliance
+	success = false;
+	vector<Appliances>& temp3 = t3.getAppliances();
+	Appliances& t4 = temp3[0];
+	for (auto& a : temp3)
+	{
+		if (a.getName().compare(processed[3]) == 0)
+		{
+			t4 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 4) return t4;
+
+	success = false; // failed
+	return ret;
+}
+
+
 int main()
 {
 	ComplaintRecord c;
-	while (true)
-	{
-		//		Room a;
-		//		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
-		//		a.addAppliance(b);
-		//		a.report();
-		//		a.DynamicScheduling();
-		//		a.currentStatus();
-		c.display();
-		bool clear;
-		clear = getBool("enter 1 to clear ");
-		if (clear)
-			clearScreen();
-	}
+
+	//		Room a;
+	//		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
+	//		a.addAppliance(b);
+	//		a.report();
+	//		a.DynamicScheduling();
+	//		a.currentStatus();
+	//		testing the parsing
+	Appliances a("bulb", 20, 2, 1, 1);
+	Room b({ a }, "class", 1);
+	Sections d({ b }, {}, "lt1");
+	Admin e({ d }, PowerSource(3, 2), PowerSource(3, 2), {}, "blocka");
+	string l = "blockA/lt1";
+	bool s = true;
+	vector<Admin> pass = { e };
+	variant< Admin, Sections, Room, Appliances> var = parseLocation(l, pass, s);
+	if (s == false) return 0;
+	// Define a lambda to call the report function
+	auto reportFunc = [](auto& obj) {
+		obj.report();
+		};
+	auto currentStatusFunc = [](auto& obj) {
+		obj.currentStatus();
+		};
+
+	// Call the report function through std::visit
+	visit(reportFunc, var);
+	visit(currentStatusFunc, var);
 }
 
 
