@@ -1070,30 +1070,71 @@ int main()
 {
 	// populate the database here
 
-	// SAMPLE DATA
-
 	// appliances
 	Appliances bulb("bulb", 20, 2, true, true);
 	Appliances fan("fan", 30, 1, true, true);
 	Appliances ac("ac", 1500, 1, false, false);
 	Appliances laptop("laptop", 200, 10, true, true);
 	Appliances printer("printer", 100, 1, false, false);
+	//cabin
+	Appliances computer_System("computer System", 275, 12, true, true);
+	Appliances led("LEDs", 10, 12, true, true);
+	Appliances Electronic_Kit("Electronic_Kit", 800, 16, false, true);
+	Appliances Projector("Projector", 300, 1, false, true);
+	Appliances CCTV("CCTV", 10, 2, true, true);
+	Appliances Water_Coolers("Water_Cooler", 150, 2, true, true);
+	Appliances Tube_Lights("Tube_Light", 40, 140, true, true);
+
+
 
 	// Create rooms and add appliances to them
 	Room room101({ bulb, fan }, "room101", 1);
-	Room room102({ fan, ac }, "room102", 1);
 	Room room201({ bulb, laptop, fan }, "room201", 1);
-	Room room202({ fan }, "room202", 1);
 	Room room301({ bulb, fan, printer, laptop }, "room301", 1);
 
-	// Create sections and add rooms to them
-	Sections sectionA({ room101, room102 }, { bulb, fan }, "sectiona");
-	Sections sectionB({ room201, room202 }, { printer, laptop }, "sectionb");
-	Sections sectionC({ room301 }, { ac, bulb, fan }, "sectionc");
+	//cabin appliances
+	Room room103({ computer_System,fan,bulb,ac,printer,CCTV }, "room103", 1);
+	Room room105({ computer_System,fan,bulb,ac,printer,CCTV }, "room105", 1);
+	Room room106({ computer_System,fan,bulb,ac,printer,CCTV }, "room106", 1);
+	Room room107({ computer_System,fan,bulb,ac,printer,CCTV }, "room107", 1);
+	Room room108({ computer_System,fan,bulb,ac,printer,CCTV }, "room108", 1);
+	Room room109({ computer_System,fan,bulb,ac,printer,CCTV }, "room109", 1);
+	Room room110({ computer_System,fan,bulb,ac,printer,CCTV }, "room110", 1);
+	Room room113({ computer_System,fan,bulb,ac,printer,CCTV }, "room113", 1);
+	Room room204({ computer_System,fan,bulb,ac,printer,CCTV }, "room204", 1);
+	Room room302({ computer_System, Projector, fan, CCTV }, "room302", 2);
 
-	// Create admins and add sections to them
-	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), { room101 }, "Admin1");
-	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "Admin2");
+	//Room room101({ bulb, fan }, "room101", 1);
+	//Room room203({ bulb, laptop, fan }, "room201", 1);
+	Room room202({ fan }, "room202", 1);
+	//Room room301({ bulb, fan, printer, laptop }, "room301", 1);
+	Room room213({ led, ac, fan }, "room213", 1);
+	Room room203({ led,laptop }, "room203", 1);
+	Room room115({ Projector, ac,printer }, "room115", 1);
+	Room room211({ Projector, fan }, "room211", 1);
+	Room room112({ led, fan }, "room112", 1);
+	Room room111({ ac }, "room111", 1);
+	Room room210({ CCTV,fan }, "room210", 1);
+	Room room114({ Projector,computer_System,bulb }, "room114", 1);
+	Room room214({ computer_System }, "room214", 1);
+	// Create sections and add rooms to them
+	Sections sectionA({ room101 }, { bulb, fan }, "LT1");
+	Sections sectionB({ room201, room202 }, { printer, laptop }, "LT2");
+	Sections sectionC({ room301 }, { ac, bulb, fan }, "LT3");
+	Sections sectionD({ room103,room105,room106,room107,room108,room109,room110,room111,room113,room204,room302 }, { computer_System,fan,bulb,ac,printer,CCTV }, "Department");
+	Sections sectionE({ room203, room115 }, { Projector, ac, printer }, "LT4");
+	Sections sectionF({ room109 }, { CCTV, led, ac }, "LT5");
+	Sections sectionG({ room106, room211 }, { Projector, fan }, "LT6");
+	Sections sectionH({ room111, room210 }, { CCTV, fan }, "LT7");
+	Sections sectionI({ room114 }, { Projector, computer_System, bulb }, "LT8");
+	Sections sectionJ({ room214 }, { computer_System }, "LT9");
+	Sections sectionK({ room213 }, { led, ac, fan }, "LT10");
+
+	//Lab
+	Room room303({ Electronic_Kit,Projector,CCTV,ac,Tube_Lights }, "room303", 1);
+
+	Admin admin1({ sectionA, sectionB, sectionC, sectionD, sectionE }, PowerSource(3, 2), PowerSource(3, 2), { room101, room112, room303}, "Admin1");
+	Admin admin2({ sectionF, sectionG, sectionH, sectionI, sectionJ, sectionK }, PowerSource(3, 2), PowerSource(3, 2), {room112}, "Admin2");
 
 	// solar panel data
 	SolarPanel referencePanel(1, 100.0); // Setting reference panel with id 1 and output 100.0
