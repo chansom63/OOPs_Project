@@ -46,6 +46,7 @@ double getDouble(string s);
 string getString(string a);
 int getInt(string s);
 bool getBool(string s);
+string lowerString(string loc);
 
 // Define color constants
 enum ConsoleColor {
@@ -137,7 +138,7 @@ public:
 		if (h == 2)
 			cout << "|    |    |    |        > ";
 		setColor(LightGreen, Black);
-		cout <<	"Energy Efficiency: " << random << endl;
+		cout << "Energy Efficiency: " << random << endl;
 		if (code < failure.size())
 		{
 			conditions = 1;
@@ -300,7 +301,7 @@ public:
 		setColor(DarkGray, Black);
 		if (heir)
 			cout << "|    |--  ";
-		
+
 		setColor(LightGray, Black);
 		cout << "Section: " << name << endl;
 		setColor(DarkGray, Black);
@@ -341,7 +342,7 @@ class Admin
 	PowerSource Solar;
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
-	int maintenanceInterval; 
+	int maintenanceInterval;
 	time_t lastMaintenance;
 public:
 	Admin() {
@@ -364,7 +365,7 @@ public:
 
 	string& getName() { return name; }
 
-	vector<Sections>& getSections () { return sections; } 
+	vector<Sections>& getSections() { return sections; }
 	void currentStatus()
 	{
 		setColor(Yellow, Black);
@@ -695,27 +696,27 @@ public:
 			bool select;
 			string ID;
 			int i = 0;
-			ID = getString("\nEnter the Complaint ID:");
+			ID = getString("\nEnter the Complaint ID: ");
 			while (1) {
 				for (; i < List.size(); i++)
 				{
 					if (List[i].complaintID == ID) goto x;
 				}
 				i = 0;
-				cout << "\nInvalid ID,Enter the ID again:";
-				ID = getString("\nEnter the Complaint ID:");
+				cout << "\nInvalid ID,Enter the ID again: ";
+				ID = getString("\nEnter the Complaint ID: ");
 			}
 		x:
-			select = getBool("\nEnter 1 to replace 0 to repair:");
+			select = getBool("\nEnter 1 to replace 0 to repair: ");
 			if (select) {
 				List[i].Action_Taken = "Replaced";
 				List[i].status = 1;
-				cout << "\nApliance Replaced.......................................";
+				cout << "\nAppliance Replaced.......................................";
 			}
 			else {
 				List[i].Action_Taken = "Repaired";
 				List[i].status = 1;
-				cout << "\nApliance Repaired.......................................";
+				cout << "\nAppliance Repaired.......................................";
 			}
 			break;
 
@@ -746,6 +747,21 @@ Appliances inputAppliance()
 	return Appliances(name, power, qty, status, condition);
 }
 
+bool removeAppliance(vector<Appliances>& app, string name) {
+	for (auto it = app.begin(); it != app.end(); ) {
+		if (lowerString(it->getName()) == lowerString(name)) {
+			it = app.erase(it);
+			cout << "Appliance removed successfully." << endl;
+			return true;
+		}
+		else {
+			++it;
+		}
+	}
+	cout << "Appliance not found, please try again." << endl;
+	return false;
+}
+
 
 // functionality for location based function call 
 
@@ -754,7 +770,99 @@ string lowerString(string loc)
 	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
 	return loc;
 }
-			
+
+variant<Admin*, Sections*, Room*, Appliances*> parseLocationReference(string loc, vector<Admin>& obj, bool& success, vector<string>& processed) // parse the location and return the reference of appropriate object based on it
+{
+	// location will be in the form A/B/C/D
+	// we can ignore leading and ending spaces and capitalization
+	success = true;
+	int k = loc.size();
+	loc = lowerString(loc);
+	int i = 0;
+	processed.clear(); // get the processed words from string
+	while (i < k)
+	{
+		string temp;
+		while (i != k && loc[i] != '/')
+		{
+			if (loc[i] != ' ')
+				temp += loc[i];
+			i++;
+		}
+		i++;
+		processed.push_back(temp);
+	}
+	int level = processed.size();
+	Admin* ret = nullptr; // update codebase
+	// find the right admin
+	success = false;
+	Admin* t1 = nullptr;
+	for (auto& a : obj)
+	{
+		if (lowerString(a.getName()).compare(lowerString(processed[0])) == 0)  // update codebase
+		{
+			t1 = &a;
+			success = true;
+			break;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 1) return t1;
+
+	// find the right section
+	success = false;
+	Sections* t2 = nullptr;
+	vector<Sections>* temp1 = &(t1->getSections()); // update codebase
+	for (auto& a : *temp1)
+	{
+		if (lowerString(a.getName()).compare(lowerString(processed[1])) == 0)
+		{
+			t2 = &a;
+			success = true;
+			break;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 2) return t2;
+
+	// find the right room
+	success = false;
+	Room* t3 = nullptr;
+	vector<Room>* temp2 = &(t2->getRooms()); // update codebase
+	for (auto& a : *temp2)
+	{
+		if (lowerString(a.getName()).compare(lowerString(processed[2])) == 0)
+		{
+			t3 = &a;
+			success = true;
+			break;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 3) return t3;
+
+	// find the right appliance
+	success = false;
+	Appliances* t4 = nullptr;
+	vector<Appliances>* temp3 = &(t3->getAppliances());
+	for (auto& a : *temp3)
+	{
+		if (lowerString(a.getName()).compare(lowerString(processed[3])) == 0)
+		{
+			t4 = &a;
+			success = true;
+			break;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 4) return t4;
+
+	success = false; // failed
+	return ret;
+}
+
+
+
 variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success, vector<string>& processed) // parse the location and return the reference of appropriate object based on it
 {
 	// location will be in the form A/B/C/D
@@ -812,7 +920,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	vector<Room>& temp2 = t2.getRooms(); // update codebase
 	Room& t3 = temp2[0];
 	for (auto& a : temp2)
-	{ 
+	{
 		if (lowerString(a.getName()).compare(lowerString(processed[2])) == 0)
 		{
 			t3 = a;
@@ -924,7 +1032,7 @@ vector<string> processed;
 void BluePrint()
 {
 	setColor(LightGreen, Black);
-	
+
 	cout << "\n--------------------------------------------------------------------Admin Block-----------------------------------------------------------------------------";
 	cout << "\n                                                                         |                                                                                      ";
 	cout << "\n                                                                         |                                                                                      ";
@@ -951,13 +1059,19 @@ void BluePrint()
 	setColor();
 }
 
+void refreshLocation(vector<Admin>& obj)
+{
+	bool s;
+	vector<string> temp;
+	var = parseLocation(locate, obj, s, temp);
+}
 
 int main()
 {
 	// populate the database here
-	
+
 	// SAMPLE DATA
-	
+
 	// appliances
 	Appliances bulb("bulb", 20, 2, true, true);
 	Appliances fan("fan", 30, 1, true, true);
@@ -978,7 +1092,7 @@ int main()
 	Sections sectionC({ room301 }, { ac, bulb, fan }, "sectionc");
 
 	// Create admins and add sections to them
-	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {room101}, "Admin1");
+	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), { room101 }, "Admin1");
 	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "Admin2");
 
 	// solar panel data
@@ -1047,7 +1161,7 @@ int main()
 				while (!s)
 				{
 					locate = getString("Enter location: ");
-					var = parseLocation(locate, pass, s,processed); // to check if location is true or false
+					var = parseLocation(locate, pass, s, processed); // to check if location is true or false
 					if (!s) cout << "Location inaccessible, please write correct location" << endl;
 				}
 			}
@@ -1322,31 +1436,125 @@ int main()
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
 			cout << "Location: " << locate << endl;
-			// add and remove appliance feature based on location
-			// added feature to change location as well
-			// processed vector contains the level of location
-			// if level is 4 || 1 then adding/removing appliance is not allowed
-			// appliances can be added in sections or rooms
-			int lev = processed.size();
-			if (lev == 1 || lev == 4)
+			setColor(Cyan, Black);
+			putLine(3);
+			cout << "1 Add Appliance" << endl << endl;
+			cout << "2 Remove Appliance" << endl << endl;
+			cout << "3 Clear screen" << endl << endl;
+			cout << "4 Home" << endl << endl;
+			cout << "5 Exit" << endl << endl;
+			setColor();
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			if (ask == 1)
 			{
-				cout << "Cannot add appliances in " << processed[lev - 1] << endl;
+				// Add appliance based on location
+				bool s = false;
+				variant< Admin*, Sections*, Room*, Appliances*> tvar;
+				vector<string> proc;
+				while (!s)
+				{
+					string tlocate = getString("Enter location where to add appliance: ");
+					tvar = parseLocationReference(tlocate, pass, s, proc); // to check if location is true or false
+					if (!s) cout << "Location inaccessible, please write correct location" << endl;
+				}
+				cout << endl;
+				// we just want to traverse name of its tree
+				int lev = proc.size();
+				if (lev == 1 || lev == 4)
+				{
+					cout << "Cannot add appliances in " << processed[lev - 1] << endl;
+				}
+				else
+				{
+					// now do according to level 
+					if (lev == 2) // section
+					{
+						Sections* ts = get<Sections*>(tvar);
+						ts->addAppliance();
+					}
+					else if (lev == 3) // room
+					{
+						Room* tr = get<Room*>(tvar);
+						tr->addAppliance();
+					}
+					cout << "Successfully added appliance!" << endl;
+					refreshLocation(pass);
+				}
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 2)
+			{
+				// Remove appliance baseed on location
+				bool s = false;
+				variant< Admin*, Sections*, Room*, Appliances*> tvar;
+				vector<string> proc;
+				while (!s)
+				{
+					string tlocate = getString("Enter location where to remove appliance: ");
+					tvar = parseLocationReference(tlocate, pass, s, proc); // to check if location is true or false
+					if (!s) cout << "Location inaccessible, please write correct location" << endl;
+				}
+				cout << endl;
+				int lev = proc.size();
+				if (lev == 1 || lev == 4)
+				{
+					cout << "No appliance to remove here, please select section or room" << endl;
+				}
+				else
+				{
+					if (lev == 2)
+					{
+						Sections* ts = get<Sections*>(tvar);
+						vector<Appliances>& aps = ts->getAppliances();
+						cout << "Choose appliance to remove: " << endl;
+						for (auto& appl : aps)
+						{
+							cout << "> " << appl.getName() << endl;
+						}
+						string aname;
+						do
+						{
+							aname = getString("Enter appliance name: ");
+						} while (!removeAppliance(aps, aname));
+					}
+					if (lev == 3)
+					{
+						Room* tr = get<Room*>(tvar);
+						vector<Appliances>& apr = tr->getAppliances();
+						cout << "Choose appliance to remove: " << endl;
+						for (auto& appl : apr)
+						{
+							cout << "> " << appl.getName() << endl;
+						}
+						string aname;
+						do
+						{
+							aname = getString("Enter appliance name: ");
+						} while (!removeAppliance(apr, aname));
+					}
+					refreshLocation(pass);
+				}
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 3)
+			{
+				toggle(pages::Configure);
+			}
+			else if (ask == 4)
+			{
+				toggle(pages::Home);
+			}
+			else if (ask == 5)
+			{
+				running = false;
 			}
 			else
 			{
-				// now do according to level 
-				if (lev == 2) // section
-				{
-					
-				}
-				else if (lev == 3) // room
-				{
-
-				}
+				toggle(pages::Configure);
 			}
-			putLine(3);
-			int ask = getInt("Enter your choice: ");
-			toggle(static_cast<pages::sect> (ask));
 		}
 	}
 	putLine(25);
