@@ -1,27 +1,33 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <string>
 #include <stdio.h>
+#include <algorithm>
 #include <vector>
+#include <variant>
 #include <limits>
 #include <iomanip>
 #include <cstdlib>
+#include <Windows.h>
 using namespace std;
-namespace Random{
-    unsigned int get(int start,int End)
-    {
-        int value;
-        srand(time(0));
-        value=rand()%End;
-      if(value<start) return value+start;
-      else return value;
-    }
+namespace Random {
+	unsigned int get(int start, int End)
+	{
+		int value;
+		srand(time(0));
+		value = rand() % End;
+		if (value < start) return value + start;
+		else return value;
+	}
 };
 
 string timeToString(time_t time) {
-    char buffer[80];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&time));
-    return string(buffer);
+	char buffer[80];
+	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&time));
+	return string(buffer);
 }
+
 // Error proof input functions
 void clearScreen();
 void ignoreLine();
@@ -49,12 +55,13 @@ public:
 		qty = Q;
 		status = S;
 		conditions = C;
+
 	}
-	// member functions here
+	string& getName() { return name; }
 	// Report function
-	void report()  
+	void report()
 	{
-		cout << "------------------------------------------------------------" << endl;
+		cout << "Report of appliance " << name << endl << endl;
 		bool maintain = false;
 		int code = Random::get(0, 2 * failure.size());
 		int random = Random::get(50, 100);
@@ -72,9 +79,19 @@ public:
 		cout << "Conditions: " << conditions << endl;
 
 		if ((random1 >= 0 && random1 <= 10) || maintain)
-			cout << "Maintenance required." << endl;
+			cout << "Maintainence required." << endl;
 		else
-			cout << "Maintenance not required. " << endl;
+			cout << "Maintainence not required. " << endl;
+		cout << endl;
+	}
+	// current status function
+	void currentStatus()
+	{
+		cout << "Appliance: " << name << " - Status: ";
+		if (status)
+			cout << "On" << endl;
+		else
+			cout << "Off" << endl;
 	}
 	friend class Room;
 };
@@ -96,6 +113,7 @@ public:
 		qty = q;
 	}
 	// member functions here
+	vector<Appliances>& getAppliances() { return appliances; }
 	void addAppliance()
 	{
 		appliances.push_back(inputAppliance());
@@ -104,25 +122,28 @@ public:
 	{
 		appliances.push_back(a);
 	}
-	void currentStatus()
+	void currentStatus() // updated
 	{
-		cout << "Current Status of Appliances in Room " << name << ":" << endl;
+		cout << "Current Status of Appliances in Room " << name << ":" << endl << endl;
 		for (unsigned int i = 0; i < appliances.size(); ++i)
 		{
-			cout << "Appliance: " << appliances[i].name << " - Status: ";
-			if (appliances[i].status)
-				cout << "On" << endl;
-			else
-				cout << "Off" << endl;
+			appliances[i].currentStatus();
 		}
 	}
+	string& getName() { return name; }
 	void report() // add synonymous function to other classes as well
 	{
+		cout << "Report of room " << name << endl << endl;
 		for (auto& appliance : appliances)
 		{
 			appliance.report();
 		}
 	}
+	//        void DynamicScheduling(){
+	//		for(auto& app: appliances){
+	//			app.DynamicScheduling();
+	//		}
+	//	}
 };
 
 class Sections
@@ -131,23 +152,54 @@ class Sections
 	vector<Appliances> appliances;
 	string name;
 public:
+	Sections() = default;
 	Sections(vector<Room> r, vector<Appliances> a)
 	{
 		rooms = r;
 		appliances = a;
 	}
+	Sections(vector<Room> r, vector<Appliances> a, string n)
+	{
+		rooms = r;
+		appliances = a;
+		name = n;
+	}
 	// member functions here
+	void currentStatus()
+	{
+		cout << "Current Status of Appliances in Section " << name << ":" << endl << endl;
+		for (auto& app : appliances)
+		{
+			app.currentStatus();
+		}
+		for (auto& room : rooms)
+		{
+			room.currentStatus();
+		}
+	}
+	vector<Room>& getRooms() { return rooms; }
 	void addAppliance()
 	{
 		appliances.push_back(inputAppliance());
 	}
 	void report()
 	{
+		cout << "Report of section " << name << endl << endl;
+		for (auto& app : appliances)
+		{
+			app.report();
+		}
 		for (auto& room : rooms)
 		{
 			room.report();
 		}
 	}
+	string& getName() { return name; }
+	//void DynamicScheduling(){
+	//	for(auto& room:rooms){
+	//		room.DynamicScheduling();
+	//	}
+	//}
 };
 
 class PowerSource
@@ -166,68 +218,94 @@ public:
 
 class Admin
 {
+	string name;
 	vector<Sections> sections;
 	PowerSource Solar;
 	PowerSource RegularSupply;
 	vector<Room> Rooms;
-        int maintenanceInterval;
-        time_t lastMaintenance;
+	int maintenanceInterval; 
+	time_t lastMaintenance;
 public:
-	 Admin(){
-        lastMaintenance=time(0)-30*60*60*24*2;
-        maintenanceInterval=30;
-		}
+	Admin() {
+		lastMaintenance = time(0) - 30 * 60 * 60 * 24 * 2;
+		maintenanceInterval = 30;
+	}
 	Admin(vector<Sections> section,
 		PowerSource solar,
 		PowerSource regularSupply,
-		vector<Room> rooms)
+		vector<Room> rooms, string n)
 	{
 		sections = section;
 		Solar = solar;
 		RegularSupply = regularSupply;
 		Rooms = rooms;
-		lastMaintenance=time(0)-30*60*60*24*2;
-       		 maintenanceInterval=30;
+		lastMaintenance = time(0) - 30 * 60 * 60 * 24 * 2;
+		maintenanceInterval = 30;
+		name = n;
 	}
-	// member functions here
+
+	string& getName() { return name; }
+
+	vector<Sections>& getSections () { return sections; } 
+	void currentStatus()
+	{
+		cout << "Current Status of Appliances in Admin " << name << ":" << endl << endl;
+		for (auto& room : Rooms)
+		{
+			room.currentStatus();
+		}
+		for (auto& section : sections)
+		{
+			section.currentStatus();
+		}
+	}
 	void performEarthingMaintenance() {
-        time_t now = time(0);
-        cout << "Performing earthing maintenance............................................... "<<endl<<endl;
-        lastMaintenance = now; // Update last maintenance timestamp
-        cout << "Earthing maintenance completed " <<endl;
-    }
+		time_t now = time(0);
+		cout << "Performing earthing maintenance............................................... " << endl << endl;
+		lastMaintenance = now; // Update last maintenance timestamp
+		cout << "Earthing maintenance completed " << endl;
+	}
+
+
 	bool isMaintenanceDue() const {
-        time_t now = time(0);
-        int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
-        return daysSinceLastMaintenance >= maintenanceInterval;
-    }
+		time_t now = time(0);
+		int daysSinceLastMaintenance = (now - lastMaintenance) / (60 * 60 * 24); // Convert seconds to days
+		return daysSinceLastMaintenance >= maintenanceInterval;
+	}
+	void EarthingMaintainence() {
+		cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
+		cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
 
-void EarthingMaintainence() {
-    cout << "Performing dynamic scheduling of maintenance tasks..." << endl;
-        cout << "Last Maintenance: " << timeToString(lastMaintenance) << endl;
+		cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
 
-        cout << "Maintenance Interval: " << maintenanceInterval << " days" << endl;
+		if (isMaintenanceDue()) {
+			bool ch;
+			cout << "Maintenance is due...." << endl;
+			ch = getBool("\nPress 1 to perform maintenance:");
+			if (ch) { performEarthingMaintenance(); }
+			else cout << "\nMaintenance is due yet." << endl;
+		}
+		else {
+			cout << "Maintenance is not due yet." << endl;
+		}
+		cout << endl;
+		cout << "Dynamic scheduling completed." << endl;
+	}
 
-        if (isMaintenanceDue()) {
-            bool ch;
-            cout << "Maintenance is due...." << endl;
-            ch=getBool("\nPress 1 to perform maintenance:");
-            if(ch) {performEarthingMaintenance(); }
-            else cout<<"\nMaintenance is due yet."<<endl;
-        } else {
-            cout << "Maintenance is not due yet." << endl;
-        }
-        cout << endl;
-         cout << "Dynamic scheduling completed." << endl;
-    }
-
+	// member functions here
 	void report()
 	{
+		cout << "Report of Admin " << name << endl << endl;
+		for (auto& room : Rooms)
+		{
+			room.report();
+		}
 		for (auto& section : sections)
 		{
 			section.report();
 		}
 	}
+
 };
 
 class ComplaintRecord;
@@ -250,7 +328,7 @@ public:
 		string Description,
 		string Date,
 		bool status,
-		string FaultLocation,string Action_Taken)
+		string FaultLocation, string Action_Taken)
 	{
 		this->complaintID = complaintID;
 		this->complainant = complainant;
@@ -259,7 +337,7 @@ public:
 		Date = Date;
 		this->status = status;
 		this->FaultLocation = FaultLocation;
-		this->Action_Taken=Action_Taken;
+		this->Action_Taken = Action_Taken;
 	}
 };
 
@@ -268,10 +346,10 @@ class ComplaintRecord {
 public:
 	ComplaintRecord()
 	{
-		Complaints c1("CN001", "Somesh Chandra", "6745910345", "Projector not Working", "25-03-24", 0, "LT-II 203","NIL");
-		Complaints c2("CN002", "Amit", "7459160345", "Sound System not Working", "28-03-24", 1, "LT-I 106","Repaired");
-		Complaints c3("CN003", "Aman", "4591034985", "Fan not Working", "31-03-24", 0, "CSE LAB-C123A","NIL");
-		Complaints c4("CN004", "Sam", "5910376945", "System-21 not Working", "05-04-24", 0, "CEF GENERIC","NIL");
+		Complaints c1("CN001", "Somesh Chandra", "6745910345", "Projector not Working", "25-03-24", 0, "LT-II 203", "NIL");
+		Complaints c2("CN002", "Amit", "7459160345", "Sound System not Working", "28-03-24", 1, "LT-I 106", "Repaired");
+		Complaints c3("CN003", "Aman", "4591034985", "Fan not Working", "31-03-24", 0, "CSE LAB-C123A", "NIL");
+		Complaints c4("CN004", "Sam", "5910376945", "System-21 not Working", "05-04-24", 0, "CEF GENERIC", "NIL");
 		List.push_back(c1);
 		List.push_back(c2);
 		List.push_back(c3);
@@ -287,12 +365,12 @@ public:
 			<< "1.View Pending complaints." << endl
 			<< "2.View Resolved complaints." << endl
 			<< "3.View all Complaints" << endl
-			<<"4.Replace & Repair."<<endl
+			<< "4.Replace & Repair." << endl
 			<< "Press the key: " << endl;
 		cin >> selector;
 		if (!std::cin.eof() && std::cin.peek() != '\n')
 		{
-			goto ERROR;
+			goto ERRORE;
 		}
 
 		//Checker block
@@ -303,10 +381,10 @@ public:
 			case '1':
 			case '2':
 			case '3':
-            case '4':
+			case '4':
 				check = 1; break;
 			default:
-			ERROR:
+			ERRORE:
 				fflush(stdin);
 				cout << "\nInvalid input" << endl
 					<< "Press the key again: ";
@@ -314,7 +392,7 @@ public:
 				cin >> selector;
 				if (!std::cin.eof() && std::cin.peek() != '\n')
 				{
-					goto ERROR;
+					goto ERRORE;
 				}
 			}
 		}
@@ -332,7 +410,7 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
-				cout<<"\nAction_Taken:"<<List[i].Action_Taken;
+				cout << "\nAction_Taken:" << List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
@@ -348,7 +426,7 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
-					cout<<"\nAction_Taken:"<<List[i].Action_Taken;
+				cout << "\nAction_Taken:" << List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
@@ -364,43 +442,45 @@ public:
 				cout << "\nFault Location:" << List[i].FaultLocation;
 				cout << "\nstatus:";
 				(List[i].status) ? cout << "Resolved" : cout << "Pending";
-					cout<<"\nAction_Taken:"<<List[i].Action_Taken;
+				cout << "\nAction_Taken:" << List[i].Action_Taken;
 				cout << endl << endl;
 			}
 			break;
 
-        case '4':
-            bool select;
-            string ID;
-            int i=0;
-            ID=getString("\nEnter the Complaint ID:");
-            while(1){
-            for(;i<List.size();i++)
-            {
-                if(List[i].complaintID==ID) goto x;
-            }
-            i=0;
-             cout<<"\nInvalid ID,Enter the ID again:";
-             ID=getString("\nEnter the Complaint ID:");
-            }
-            x:
-            select=getBool("\nEnter 1 to replace 0 to repair:");
-            if(select) {
-                    List[i].Action_Taken="Replaced";
-                    List[i].status=1;
-                    cout<<"\nApliance Replaced.......................................";
-            }
-            else {List[i].Action_Taken="Repaired";
-            List[i].status=1;
-            cout<<"\nApliance Repaired.......................................";
-            }
-            break;
+		case '4':
+			bool select;
+			string ID;
+			int i = 0;
+			ID = getString("\nEnter the Complaint ID:");
+			while (1) {
+				for (; i < List.size(); i++)
+				{
+					if (List[i].complaintID == ID) goto x;
+				}
+				i = 0;
+				cout << "\nInvalid ID,Enter the ID again:";
+				ID = getString("\nEnter the Complaint ID:");
+			}
+		x:
+			select = getBool("\nEnter 1 to replace 0 to repair:");
+			if (select) {
+				List[i].Action_Taken = "Replaced";
+				List[i].status = 1;
+				cout << "\nApliance Replaced.......................................";
+			}
+			else {
+				List[i].Action_Taken = "Repaired";
+				List[i].status = 1;
+				cout << "\nApliance Repaired.......................................";
+			}
+			break;
 
 
 		}
 		cout << "\n\n-----------------------------------------------------------------------------------------------\n";
 	}
 };
+
 // Input function for add appliances functionality
 
 Appliances inputAppliance()
@@ -423,20 +503,384 @@ Appliances inputAppliance()
 }
 
 
+// functionality for location based function call 
+			
+variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success) // parse the location and return the reference of appropriate object based on it
+{
+	// location will be in the form A/B/C/D
+	// we can ignore leading and ending spaces and capitalization
+	success = true;
+	int k = loc.size();
+	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+	int i = 0;
+	vector<string> processed; // get the processed words from string
+	while (i < k)
+	{
+		string temp;
+		while (i != k && loc[i] != '/')
+		{
+			if (loc[i] != ' ')
+				temp += loc[i];
+			i++;
+		}
+		i++;
+		processed.push_back(temp);
+	}
+	int level = processed.size();
+	Admin ret; // update codebase
+	// find the right admin
+	success = false;
+	Admin& t1 = obj[0];
+	for (auto& a : obj)
+	{
+		if (a.getName().compare(processed[0]) == 0)  // update codebase
+		{
+			t1 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 1) return t1;
+
+	// find the right section
+	success = false;
+	vector<Sections>& temp1 = t1.getSections(); // update codebase
+	Sections& t2 = temp1[0];
+	for (auto& a : temp1)
+	{
+		if (a.getName().compare(processed[1]) == 0)
+		{
+			t2 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 2) return t2;
+
+	// find the right room
+	success = false;
+	vector<Room>& temp2 = t2.getRooms(); // update codebase
+	Room& t3 = temp2[0];
+	for (auto& a : temp2)
+	{
+		if (a.getName().compare(processed[2]) == 0)
+		{
+			t3 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 3) return t3;
+
+	// find the right appliance
+	success = false;
+	vector<Appliances>& temp3 = t3.getAppliances();
+	Appliances& t4 = temp3[0];
+	for (auto& a : temp3)
+	{
+		if (a.getName().compare(processed[3]) == 0)
+		{
+			t4 = a;
+			success = true;
+		}
+	}
+	if (success == false) return ret; // failed 
+	if (level == 4) return t4;
+
+	success = false; // failed
+	return ret;
+}
+
+
+// bools for different sections
+bool u_main = false;
+bool u_status = false;
+bool u_blueprint = false;
+bool u_analysis = false;
+bool u_configure = false;
+bool u_home = true;
+bool running = true;
+
+// enum for sections
+namespace pages
+{
+	enum sect
+	{
+		Home = 0,
+		BluePrint = 1,
+		Maintainence = 2,
+		Status = 3,
+		Configure = 4,
+		Analysis = 5
+	};
+}
+
+
+void toggle(pages::sect type) // to toggle a single section on the screen
+{
+	clearScreen();
+	u_main = false;
+	u_status = false;
+	u_blueprint = false;
+	u_analysis = false;
+	u_configure = false;
+	u_home = false;
+	switch (type)
+	{
+	case pages::Maintainence:
+		u_main = true;
+		break;
+	case pages::Status:
+		u_status = true;
+		break;
+	case pages::BluePrint:
+		u_blueprint = true;
+		break;
+	case pages::Home:
+		u_home = true;
+		break;
+	case pages::Analysis:
+		u_analysis = true;
+		break;
+	case pages::Configure:
+		u_configure = true;
+		break;
+	default:
+		u_home = true;
+	}
+}
+
+void putSpace(int s)
+{
+	for (int i = 0; i < s; i++)
+	{
+		cout << ' ';
+	}
+}
+
+void putLine(int s)
+{
+	for (int i = 0; i < s; i++)
+	{
+		cout << endl;
+	}
+}
+
+string locate = "admin1";
+variant< Admin, Sections, Room, Appliances> var;
+
+// Function to set text color
+// Define color constants
+enum ConsoleColor {
+	Black = 0,
+	Blue = 1,
+	Green = 2,
+	Cyan = 3,
+	Red = 4,
+	Magenta = 5,
+	Brown = 6,
+	LightGray = 7,
+	DarkGray = 8,
+	LightBlue = 9,
+	LightGreen = 10,
+	LightCyan = 11,
+	LightRed = 12,
+	LightMagenta = 13,
+	Yellow = 14,
+	White = 15
+};
+
+void setColor(ConsoleColor text = White, ConsoleColor background = Black) {
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (WORD)((background << 4) | text));
+}
+
+
 int main()
 {
-	while (true)
+	// populate the database here
+	
+	// SAMPLE DATA
+	
+	// appliances
+	Appliances bulb("bulb", 20, 2, true, true);
+	Appliances fan("fan", 30, 1, true, true);
+	Appliances ac("ac", 1500, 1, false, false);
+	Appliances laptop("laptop", 200, 10, true, true);
+	Appliances printer("printer", 100, 1, false, false);
+
+	// Create rooms and add appliances to them
+	Room room101({ bulb, fan }, "room101", 1);
+	Room room102({ fan, ac }, "room102", 1);
+	Room room201({ bulb, laptop, fan }, "room201", 1);
+	Room room202({ fan }, "room202", 1);
+	Room room301({ bulb, fan, printer, laptop }, "room301", 1);
+
+	// Create sections and add rooms to them
+	Sections sectionA({ room101, room102 }, { bulb, fan }, "sectiona");
+	Sections sectionB({ room201, room202 }, { printer, laptop }, "sectionb");
+	Sections sectionC({ room301 }, { ac, bulb, fan }, "sectionc");
+
+	// Create admins and add sections to them
+	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin1");
+	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin2");
+
+	vector<Admin> pass = { admin1, admin2 };
+	var = parseLocation(locate, pass, running);
+
+
+	// lambdas to use 
+	auto reportFunc = [](auto& obj) {
+		obj.report();
+		};
+	auto currentStatusFunc = [](auto& obj) {
+		obj.currentStatus();
+		};
+
+	// main interface loop
+	while (running)
 	{
-		Room a;
-		Appliances b = Appliances("Bulb", 30, 2, 1, 1);
-		a.addAppliance(b);
-		a.report();
-		a.currentStatus();
-		bool clear;
-		clear = getBool("enter 1 to clear ");
-		if (clear)
-			clearScreen();
+		if (u_home)
+		{
+			setColor(Yellow, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|      POWER MANAGEMENT SYSTEM     |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+			setColor(Cyan, Black);
+			putLine(3);
+			cout << "1 Blueprint" << endl << endl;
+			cout << "2 Maintainance" << endl << endl;
+			cout << "3 Status" << endl << endl;
+			cout << "4 Configure" << endl << endl;
+			cout << "5 Analysis" << endl << endl;
+			cout << "6 Change location" << endl << endl;
+			cout << "7 Clear screen" << endl << endl;
+			cout << "8 Exit" << endl << endl;
+			setColor();
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+
+			if (ask == 6) // for changing location
+			{
+				bool s = false;
+				while (!s)
+				{
+					locate = getString("Enter location: ");
+					var = parseLocation(locate, pass, s); // to check if location is true or false
+					if (!s) cout << "Location inaccessible, please write correct location" << endl;
+				}
+			}
+			if (ask == 8)
+			{
+				running = false;
+			}
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_main)
+		{
+			setColor(LightCyan, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|           MAINTAINANCE           |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+			putLine(3);
+
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_status)
+		{
+			setColor(Brown, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|              STATUS              |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+			putLine(5);
+			setColor(LightGreen, Black);
+			// display status
+			visit(reportFunc, var);
+			putLine(5);
+			visit(currentStatusFunc, var);
+			setColor();
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_blueprint)
+		{
+			setColor(Blue, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|             BLUEPRINT            |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_analysis)
+		{
+			setColor(LightGreen, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|             ANALYSIS             |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
+		if (u_configure)
+		{
+			setColor(Red, Black);
+			int pad = 60;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			putSpace(pad);
+			std::cout << "|          CONFIGURATION           |" << std::endl;
+			putSpace(pad);
+			std::cout << "+----------------------------------+" << std::endl;
+			setColor();
+			cout << "Location: " << locate << endl;
+
+			putLine(3);
+			int ask = getInt("Enter your choice: ");
+			toggle(static_cast<pages::sect> (ask));
+		}
 	}
+	putLine(25);
+	putSpace(15);
+	setColor(Black, Green);
+	putSpace(40);
+	cout << "Thank you for using Power Management System.";
+	putSpace(40);
+	setColor();
+	putLine(25);
 }
 
 
@@ -447,7 +891,7 @@ void clearScreen() {
 // Error check functionalities
 void ignoreLine()
 {
-	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	std::cin.ignore(100, '\n');
 }
 
 double getDouble(string s)
