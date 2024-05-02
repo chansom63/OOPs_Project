@@ -290,6 +290,7 @@ public:
 		}
 	}
 	vector<Room>& getRooms() { return rooms; }
+	vector<Appliances>& getAppliances() { return appliances; }
 	void addAppliance()
 	{
 		appliances.push_back(inputAppliance());
@@ -919,6 +920,37 @@ string locate = "Admin1";
 variant< Admin, Sections, Room, Appliances> var;
 vector<string> processed;
 
+// Blueprint
+void BluePrint()
+{
+	setColor(LightGreen, Black);
+	
+	cout << "\n--------------------------------------------------------------------Admin Block-----------------------------------------------------------------------------";
+	cout << "\n                                                                         |                                                                                      ";
+	cout << "\n                                                                         |                                                                                      ";
+	cout << "\n                               -------------------------------------------------------------------------------------------";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                        Lecture_Theatre_1                         Lecture_Theatre_2                                 Departments                                   ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               -------------------------------------------------------------------------------------------                                         ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                             Rooms                                     Rooms                                           Rooms                                      ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                           Appliances                                Appliances                                      Appliances                                   ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               |                                         |                                               |                                        ";
+	cout << "\n                               -------------------------------------------------------------------------------------------";
+	cout << "\n                                                                         |                                                                                       ";
+	cout << "\n                                                                         |                                                                                        ";
+	cout << "\n                                                                    PowerSource                                                                                   ";
+	cout << "\n------------------------------------------------------------------------------------------------------------------------------------------------------------";
+	setColor();
+}
+
 
 int main()
 {
@@ -1181,10 +1213,85 @@ int main()
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
 			cout << "Location: " << locate << endl;
-
+			setColor(Cyan, Black);
+			putLine(3);
+			cout << "1 View General blueprint" << endl << endl;
+			cout << "2 Search particular location" << endl << endl;
+			cout << "3 Clear screen" << endl << endl;
+			cout << "4 Home" << endl << endl;
+			cout << "5 Exit" << endl << endl;
+			setColor();
 			putLine(3);
 			int ask = getInt("Enter your choice: ");
-			toggle(static_cast<pages::sect> (ask));
+			if (ask == 1)
+			{
+				BluePrint();
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 2)
+			{
+				// implement location based list based name display
+				bool s = false;
+				variant< Admin, Sections, Room, Appliances> tvar;
+				vector<string> proc;
+				while (!s)
+				{
+					string tlocate = getString("Enter location: ");
+					tvar = parseLocation(tlocate, pass, s, proc); // to check if location is true or false
+					if (!s) cout << "Location inaccessible, please write correct location" << endl;
+				}
+				// we just want to traverse name of its tree
+				int tlev = proc.size();
+				if (tlev == 1)
+				{
+					cout << "Nothing to display, please search section or room" << endl;
+				}
+				else if (tlev == 2)
+				{
+					Sections ts = get<Sections>(tvar);
+					vector<Appliances>& tapp = ts.getAppliances();
+					cout << "\nAppliances in section " << ts.getName() << " are: \n\n";
+					for (auto& app : tapp)
+					{
+						cout << "> " << app.getName() << endl;
+					}
+					cout << endl;
+				}
+				else if (tlev == 3)
+				{
+					Room tr = get<Room>(tvar);
+					vector<Appliances>& tapp = tr.getAppliances();
+					cout << "\nAppliances in room " << tr.getName() << " are: \n\n";
+					for (auto& app : tapp)
+					{
+						cout << "> " << app.getName() << endl;
+					}
+					cout << endl;
+				}
+				else if (tlev == 4)
+				{
+					cout << "Nothing to display, please search section or room" << endl;
+				}
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 3)
+			{
+				toggle(pages::BluePrint);
+			}
+			else if (ask == 4)
+			{
+				toggle(pages::Home);
+			}
+			else if (ask == 5)
+			{
+				running = false;
+			}
+			else
+			{
+				toggle(pages::BluePrint);
+			}
 		}
 		if (u_analysis)
 		{
