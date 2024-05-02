@@ -696,27 +696,27 @@ public:
 			bool select;
 			string ID;
 			int i = 0;
-			ID = getString("\nEnter the Complaint ID:");
+			ID = getString("\nEnter the Complaint ID: ");
 			while (1) {
 				for (; i < List.size(); i++)
 				{
 					if (List[i].complaintID == ID) goto x;
 				}
 				i = 0;
-				cout << "\nInvalid ID,Enter the ID again:";
-				ID = getString("\nEnter the Complaint ID:");
+				cout << "\nInvalid ID,Enter the ID again: ";
+				ID = getString("\nEnter the Complaint ID: ");
 			}
 		x:
-			select = getBool("\nEnter 1 to replace 0 to repair:");
+			select = getBool("\nEnter 1 to replace 0 to repair: ");
 			if (select) {
 				List[i].Action_Taken = "Replaced";
 				List[i].status = 1;
-				cout << "\nApliance Replaced.......................................";
+				cout << "\nAppliance Replaced.......................................";
 			}
 			else {
 				List[i].Action_Taken = "Repaired";
 				List[i].status = 1;
-				cout << "\nApliance Repaired.......................................";
+				cout << "\nAppliance Repaired.......................................";
 			}
 			break;
 
