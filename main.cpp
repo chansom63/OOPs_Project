@@ -493,26 +493,6 @@ public:
 		}
 	}
 
-	bool isNoon() const {
-		// Simulating noon for demonstration
-		// You would replace this with actual logic to determine if it's 12 noon
-		return true;  // Assuming it's always 12 noon for demonstration
-	}
-
-	void checkPanels() {
-		if (!isNoon()) {
-			cout << "It's not 12 noon. Skipping panel check." << endl;
-			return;
-		}
-
-		for (const auto& panel : panels) {
-			float threshold = referencePanel.getOutput() * 0.1; // 10% threshold
-			if (panel.getOutput() < referencePanel.getOutput() - threshold) {
-				cout << "Alert: Solar Panel " << panel.getId() << " output is significantly lower than the reference panel." << endl;
-			}
-		}
-	}
-
 	float getPanelOutput(int panelId) const {
 		for (const auto& panel : panels) {
 			if (panel.getId() == panelId) {
@@ -524,9 +504,10 @@ public:
 
 	void addSolarPanel() {
 		int id;
-		float output;
+		double output = 3000;
 		id = getInt("Enter the ID of the new solar panel: ");
-		output = getInt("Enter the output of the new solar panel (in watts): ");
+		while (output < 10 || output > 2000)
+			output = getDouble("Enter the output of the new solar panel (in watts) range(10, 2000): ");
 		addPanel(SolarPanel(id, output));
 		cout << "Solar panel with ID " << id << " and output " << output << "W added successfully." << endl;
 	}
@@ -537,6 +518,7 @@ public:
 		cout << "Choose an option:\n";
 		cout << "1. Add a new solar panel\n";
 		cout << "2. See the output of a specific panel\n";
+		cout << "3. Show ouput of all panels\n";
 	}
 
 	void handleOption(int option) {
@@ -555,6 +537,10 @@ public:
 			else {
 				cout << "Solar Panel with ID " << panelId << " not found." << endl;
 			}
+			break;
+		}
+		case 3: {
+			showAllPanels();
 			break;
 		}
 		default:
@@ -744,12 +730,13 @@ Appliances inputAppliance()
 	cout << "|  Add Appliance  |" << std::endl;
 	cout << "+-----------------+" << std::endl;
 	string name;
-	double power;
+	double power = 3000;
 	int qty = -1;
 	bool status;
 	bool condition;
 	name = getString("Enter the name of appliance: ");
-	power = getDouble("Enter power: ");
+	while (power < 0 || power > 2000)
+		power = getDouble("Enter power | range(10, 2000): ");
 	while (qty < 0)
 		qty = getInt("Enter quantity: ");
 	status = getBool("Enter status(1 / 0) : ");
@@ -1284,7 +1271,7 @@ int main()
 				cout << "+-----------------+" << std::endl;
 				solarPlant.displayMenu();
 				int option = 5;
-				while (option <= 0 || option > 2)
+				while (option <= 0 || option > 3)
 					option = getInt("Enter option: ");
 				solarPlant.handleOption(option);
 				string hold = getString("Enter anything to reset: ");
