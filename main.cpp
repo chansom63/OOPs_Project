@@ -254,11 +254,6 @@ public:
 			appliance.report(true, 2);
 		}
 	}
-	//        void DynamicScheduling(){
-	//		for(auto& app: appliances){
-	//			app.DynamicScheduling();
-	//		}
-	//	}
 };
 
 class Sections
@@ -322,11 +317,6 @@ public:
 		}
 	}
 	string& getName() { return name; }
-	//void DynamicScheduling(){
-	//	for(auto& room:rooms){
-	//		room.DynamicScheduling();
-	//	}
-	//}
 };
 
 class PowerSource
@@ -410,7 +400,7 @@ public:
 		if (isMaintenanceDue()) {
 			bool ch;
 			cout << "Maintenance is due...." << endl;
-			ch = getBool("\nPress 1 to perform maintenance:");
+			ch = getBool("\nPress 1 to perform maintenance: ");
 			if (ch) { performEarthingMaintenance(); }
 			else cout << "\nMaintenance is due yet." << endl;
 		}
@@ -442,6 +432,123 @@ public:
 		}
 	}
 
+};
+
+// Function to get current time as a string
+string getCurrentTime() {
+	time_t now = time(0);
+	tm* timeinfo = localtime(&now);
+	char buffer[80];
+	strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
+	return buffer;
+}
+
+class SolarPanel {
+private:
+	int id;
+	float output;
+public:
+	SolarPanel(int _id, float _output) : id(_id), output(_output) {}
+
+	float getOutput() const {
+		return output;
+	}
+
+	void setOutput(float _output) {
+		output = _output;
+	}
+
+	int getId() const {
+		return id;
+	}
+};
+
+class SolarPlant {
+private:
+	vector<SolarPanel> panels;
+	SolarPanel referencePanel;
+public:
+	SolarPlant(const SolarPanel& _referencePanel) : referencePanel(_referencePanel) {}
+
+	void addPanel(const SolarPanel& panel) {
+		panels.push_back(panel);
+	}
+
+	void showAllPanels() const {
+		cout << "Solar Panels in the Plant:\n";
+		for (const auto& panel : panels) {
+			cout << "ID: " << panel.getId() << ", Output: " << panel.getOutput() << "W\n";
+		}
+	}
+
+	bool isNoon() const {
+		// Simulating noon for demonstration
+		// You would replace this with actual logic to determine if it's 12 noon
+		return true;  // Assuming it's always 12 noon for demonstration
+	}
+
+	void checkPanels() {
+		if (!isNoon()) {
+			cout << "It's not 12 noon. Skipping panel check." << endl;
+			return;
+		}
+
+		for (const auto& panel : panels) {
+			float threshold = referencePanel.getOutput() * 0.1; // 10% threshold
+			if (panel.getOutput() < referencePanel.getOutput() - threshold) {
+				cout << "Alert: Solar Panel " << panel.getId() << " output is significantly lower than the reference panel." << endl;
+			}
+		}
+	}
+
+	float getPanelOutput(int panelId) const {
+		for (const auto& panel : panels) {
+			if (panel.getId() == panelId) {
+				return panel.getOutput();
+			}
+		}
+		return -1; // Panel not found
+	}
+
+	void addSolarPanel() {
+		int id;
+		float output;
+		id = getInt("Enter the ID of the new solar panel: ");
+		output = getInt("Enter the output of the new solar panel (in watts): ");
+		addPanel(SolarPanel(id, output));
+		cout << "Solar panel with ID " << id << " and output " << output << "W added successfully." << endl;
+	}
+
+	void displayMenu() {
+		cout << "Welcome to Solar Panel Management System\n";
+		cout << "Current time: " << getCurrentTime() << endl;
+		cout << "Choose an option:\n";
+		cout << "1. Add a new solar panel\n";
+		cout << "2. See the output of a specific panel\n";
+	}
+
+	void handleOption(int option) {
+		switch (option) {
+		case 1: {
+			addSolarPanel();
+			break;
+		}
+		case 2: {
+			int panelId;
+			panelId = getInt("Enter the ID of the panel to get its output: ");
+			float output = getPanelOutput(panelId);
+			if (output != -1) {
+				cout << "Output of Solar Panel " << panelId << ": " << output << "W" << endl;
+			}
+			else {
+				cout << "Solar Panel with ID " << panelId << " not found." << endl;
+			}
+			break;
+		}
+		default:
+			cout << "Invalid option. Please choose 1 or 2." << endl;
+		}
+	}
 };
 
 class ComplaintRecord;
@@ -647,7 +754,7 @@ string lowerString(string loc)
 	return loc;
 }
 			
-variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success) // parse the location and return the reference of appropriate object based on it
+variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success, vector<string>& processed) // parse the location and return the reference of appropriate object based on it
 {
 	// location will be in the form A/B/C/D
 	// we can ignore leading and ending spaces and capitalization
@@ -655,7 +762,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	int k = loc.size();
 	loc = lowerString(loc);
 	int i = 0;
-	vector<string> processed; // get the processed words from string
+	processed.clear(); // get the processed words from string
 	while (i < k)
 	{
 		string temp;
@@ -810,6 +917,7 @@ void putLine(int s)
 
 string locate = "Admin1";
 variant< Admin, Sections, Room, Appliances> var;
+vector<string> processed;
 
 
 int main()
@@ -841,8 +949,24 @@ int main()
 	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {room101}, "Admin1");
 	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "Admin2");
 
+	// solar panel data
+	SolarPanel referencePanel(1, 100.0); // Setting reference panel with id 1 and output 100.0
+	SolarPlant solarPlant(referencePanel);
+
+	// Predefined dummy solar panels
+	vector<SolarPanel> dummyPanels = {
+		SolarPanel(1, 95.0),
+		SolarPanel(2, 105.0),
+		SolarPanel(3, 90.0)
+	};
+
+	// Adding dummy panels to the solar plant
+	for (const auto& panel : dummyPanels) {
+		solarPlant.addPanel(panel);
+	}
+
 	vector<Admin> pass = { admin1, admin2 };
-	var = parseLocation(locate, pass, running);
+	var = parseLocation(locate, pass, running, processed);
 
 
 	// lambdas to use 
@@ -851,6 +975,9 @@ int main()
 		};
 	auto currentStatusFunc = [](auto& obj) {
 		obj.currentStatus();
+		};
+	auto getNameFunc = [](auto& obj) {
+		return obj.getName();
 		};
 
 	// main interface loop
@@ -888,7 +1015,7 @@ int main()
 				while (!s)
 				{
 					locate = getString("Enter location: ");
-					var = parseLocation(locate, pass, s); // to check if location is true or false
+					var = parseLocation(locate, pass, s,processed); // to check if location is true or false
 					if (!s) cout << "Location inaccessible, please write correct location" << endl;
 				}
 			}
@@ -910,10 +1037,78 @@ int main()
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
 			cout << "Location: " << locate << endl;
+			setColor(Cyan, Black);
+			putLine(3);
+			cout << "1 View Complaints" << endl << endl;
+			cout << "2 Earthing maintainence" << endl << endl;
+			cout << "3 Solar maintainence" << endl << endl;
+			cout << "4 Clear screen" << endl << endl;
+			cout << "5 Home" << endl << endl;
+			cout << "6 Exit" << endl << endl;
+			setColor();
 			putLine(3);
 
 			int ask = getInt("Enter your choice: ");
-			toggle(static_cast<pages::sect> (ask));
+			if (ask == 1)
+			{
+				// complaints
+				putLine(3);
+				cout << "+-----------------+" << std::endl;
+				cout << "|    Complaints   |" << std::endl;
+				cout << "+-----------------+" << std::endl;
+				ComplaintRecord comp;
+				comp.display();
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 2)
+			{
+				// Earthing
+				putLine(3);
+				cout << "+-----------------+" << std::endl;
+				cout << "|     Earthing    |" << std::endl;
+				cout << "+-----------------+" << std::endl;
+				string a = processed[0];
+				for (auto& ad : pass)
+				{
+					if (lowerString(ad.getName()).compare(a) == 0)
+					{
+						ad.EarthingMaintainence();
+					}
+				}
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 3)
+			{
+				putLine(3);
+				cout << "+-----------------+" << std::endl;
+				cout << "|   Solar Panels  |" << std::endl;
+				cout << "+-----------------+" << std::endl;
+				solarPlant.displayMenu();
+				int option = 5;
+				while (option <= 0 || option > 2)
+					option = getInt("Enter option: ");
+				solarPlant.handleOption(option);
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 4)
+			{
+				toggle(pages::Maintainence);
+			}
+			else if (ask == 5)
+			{
+				toggle(pages::Home);
+			}
+			else if (ask == 6)
+			{
+				running = false;
+			}
+			else
+			{
+				toggle(pages::Maintainence);
+			}
 		}
 		if (u_status)
 		{
@@ -927,14 +1122,52 @@ int main()
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
 			cout << "Location: " << locate << endl;
-			putLine(5);
-			setColor(LightGreen, Black);
-			// display status
-			visit(reportFunc, var);
-			putLine(5);
+			setColor(Cyan, Black);
+			putLine(3);
+			cout << "1 View Report" << endl << endl;
+			cout << "2 View Current status" << endl << endl;
+			cout << "3 Clear screen" << endl << endl;
+			cout << "4 Home" << endl << endl;
+			cout << "5 Exit" << endl << endl;
 			setColor();
+			putLine(3);
 			int ask = getInt("Enter your choice: ");
-			toggle(static_cast<pages::sect> (ask));
+			if (ask == 1)
+			{
+				putLine(3);
+				cout << "+-----------------+" << std::endl;
+				cout << "|      Report     |" << std::endl;
+				cout << "+-----------------+" << std::endl;
+				visit(reportFunc, var);
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 2)
+			{
+				putLine(3);
+				cout << "+-----------------+" << std::endl;
+				cout << "|  Current Status |" << std::endl;
+				cout << "+-----------------+" << std::endl;
+				visit(currentStatusFunc, var);
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
+			}
+			else if (ask == 3)
+			{
+				toggle(pages::Status);
+			}
+			else if (ask == 4)
+			{
+				toggle(pages::Home);
+			}
+			else if (ask == 5)
+			{
+				running = false;
+			}
+			else
+			{
+				toggle(pages::Status);
+			}
 		}
 		if (u_blueprint)
 		{
@@ -982,7 +1215,28 @@ int main()
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
 			cout << "Location: " << locate << endl;
+			// add and remove appliance feature based on location
+			// added feature to change location as well
+			// processed vector contains the level of location
+			// if level is 4 || 1 then adding/removing appliance is not allowed
+			// appliances can be added in sections or rooms
+			int lev = processed.size();
+			if (lev == 1 || lev == 4)
+			{
+				cout << "Cannot add appliances in " << processed[lev - 1] << endl;
+			}
+			else
+			{
+				// now do according to level 
+				if (lev == 2) // section
+				{
+					
+				}
+				else if (lev == 3) // room
+				{
 
+				}
+			}
 			putLine(3);
 			int ask = getInt("Enter your choice: ");
 			toggle(static_cast<pages::sect> (ask));
