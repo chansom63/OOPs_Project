@@ -640,6 +640,12 @@ Appliances inputAppliance()
 
 
 // functionality for location based function call 
+
+string lowerString(string loc)
+{
+	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+	return loc;
+}
 			
 variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success) // parse the location and return the reference of appropriate object based on it
 {
@@ -647,7 +653,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	// we can ignore leading and ending spaces and capitalization
 	success = true;
 	int k = loc.size();
-	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+	loc = lowerString(loc);
 	int i = 0;
 	vector<string> processed; // get the processed words from string
 	while (i < k)
@@ -669,7 +675,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	Admin& t1 = obj[0];
 	for (auto& a : obj)
 	{
-		if (a.getName().compare(processed[0]) == 0)  // update codebase
+		if (lowerString(a.getName()).compare(lowerString(processed[0])) == 0)  // update codebase
 		{
 			t1 = a;
 			success = true;
@@ -684,7 +690,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	Sections& t2 = temp1[0];
 	for (auto& a : temp1)
 	{
-		if (a.getName().compare(processed[1]) == 0)
+		if (lowerString(a.getName()).compare(lowerString(processed[1])) == 0)
 		{
 			t2 = a;
 			success = true;
@@ -698,8 +704,8 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	vector<Room>& temp2 = t2.getRooms(); // update codebase
 	Room& t3 = temp2[0];
 	for (auto& a : temp2)
-	{
-		if (a.getName().compare(processed[2]) == 0)
+	{ 
+		if (lowerString(a.getName()).compare(lowerString(processed[2])) == 0)
 		{
 			t3 = a;
 			success = true;
@@ -714,7 +720,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	Appliances& t4 = temp3[0];
 	for (auto& a : temp3)
 	{
-		if (a.getName().compare(processed[3]) == 0)
+		if (lowerString(a.getName()).compare(lowerString(processed[3])) == 0)
 		{
 			t4 = a;
 			success = true;
@@ -802,7 +808,7 @@ void putLine(int s)
 	}
 }
 
-string locate = "admin1";
+string locate = "Admin1";
 variant< Admin, Sections, Room, Appliances> var;
 
 
@@ -832,8 +838,8 @@ int main()
 	Sections sectionC({ room301 }, { ac, bulb, fan }, "sectionc");
 
 	// Create admins and add sections to them
-	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {room101}, "admin1");
-	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin2");
+	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {room101}, "Admin1");
+	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "Admin2");
 
 	vector<Admin> pass = { admin1, admin2 };
 	var = parseLocation(locate, pass, running);
