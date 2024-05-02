@@ -10,9 +10,14 @@
 #include <iomanip>
 #include <cstdlib>
 #include <Windows.h>
+#define SIZE 160
 using namespace std;
 
-
+class Admin;
+class Sections;
+class Room;
+class Appliances;
+void Analysis(vector<Admin>& pass);
 namespace Random {
 	unsigned int get(int start, int End) {
 		static bool initialized = false;
@@ -74,8 +79,6 @@ void setColor(ConsoleColor text = White, ConsoleColor background = Black) {
 
 class Appliances
 {
-	string name;
-	double power;
 	unsigned int qty;
 	bool status;
 	bool conditions;
@@ -83,6 +86,8 @@ class Appliances
 	"Warning: potential physical damage to electronic components!", "Warning: risk of malfunction!", "Warning: risk of over heating and equipment damage" };
 
 public:
+	string name;
+	double power;
 	Appliances() = default;
 	Appliances(string N, double P, unsigned int Q, bool S, bool C)
 	{
@@ -195,6 +200,7 @@ public:
 		cout << endl;
 	}
 	friend class Room;
+	friend void Analysis(vector<Admin>& pass);
 };
 
 // forward declaration
@@ -202,10 +208,11 @@ Appliances inputAppliance();
 
 class Room
 {
-	vector<Appliances> appliances;
+	
 	string name;
 	unsigned int qty;
 public:
+	vector<Appliances> appliances;
 	Room() = default;
 	Room(vector<Appliances> a, string n, unsigned int q)
 	{
@@ -255,14 +262,16 @@ public:
 			appliance.report(true, 2);
 		}
 	}
+	friend void Analysis(vector<Admin>& pass);
 };
 
 class Sections
 {
-	vector<Room> rooms;
+	
 	vector<Appliances> appliances;
 	string name;
 public:
+	vector<Room> rooms;
 	Sections() = default;
 	Sections(vector<Room> r, vector<Appliances> a)
 	{
@@ -319,6 +328,7 @@ public:
 		}
 	}
 	string& getName() { return name; }
+	friend void Analysis(vector<Admin>& pass);
 };
 
 class PowerSource
@@ -433,7 +443,7 @@ public:
 			section.report(true);
 		}
 	}
-
+	friend void Analysis(vector<Admin>& pass);
 };
 
 // Function to get current time as a string
@@ -1459,11 +1469,10 @@ int main()
 			putSpace(pad);
 			std::cout << "+----------------------------------+" << std::endl;
 			setColor();
-			cout << "Location: " << locate << endl;
-
 			putLine(3);
-			int ask = getInt("Enter your choice: ");
-			toggle(static_cast<pages::sect> (ask));
+			Analysis(pass);
+			string ask = getString("Enter to go home: ");
+			toggle(pages::Home);
 		}
 		if (u_configure)
 		{
@@ -1700,4 +1709,120 @@ bool getBool(string s)
 		}
 		return x;
 	}
+}
+
+void Analysis(vector<Admin>& pass)
+{
+	//Data inputs
+	double netPower_daily = 0, netPower_annualy, netPower_monthly, GreenPower_Daily = 0, GreenPower_Monthly, GreenPower_Annually;
+
+	vector<pair<string, double>> Appliance_Power;
+	string MinName, MaxName;
+	double MinPower, MaxPower;
+	double Predicted_daily_cost, Predicted_monthly_cost, Predicted_annual_cost;
+
+	double Last_daily_cost, Last_monthly_cost, Last_annual_cost, pdaily, pmonthly, pannual;
+
+	double carbon_footprint_daily, carbon_footprint_monthly, carbon_footprint_annualy;
+
+	vector<SolarPanel> dummyPanels = {
+		SolarPanel(1, 95.0),
+		SolarPanel(2, 105.0),
+		SolarPanel(3, 90.0)
+	};
+
+	double Energy_Intensity_daily, Energy_Intensity_monthly, Energy_Intensity_annualy;
+	//Data Processing
+
+		for (int i = 0; i < dummyPanels.size(); i++)
+		{
+			GreenPower_Daily += dummyPanels[i].getOutput();
+		}
+
+
+		for (int i = 0; i < pass.size(); i++)//Admin Loop
+			for (int j = 0; j < pass[i].sections.size(); j++)//Section Loop
+				for (int k = 0; k < pass[i].sections[j].rooms.size(); k++)//room Loop
+					for (int m = 0; m < pass[i].sections[j].rooms[k].appliances.size(); m++)//appliances loop
+					{
+						netPower_daily += pass[i].sections[j].rooms[k].appliances[m].power;
+						Appliance_Power.push_back(pair<string, double>(pass[i].sections[j].rooms[k].appliances[m].name, pass[i].sections[j].rooms[k].appliances[m].power));
+					}
+
+
+		MinPower = MaxPower = Appliance_Power[0].second;
+	MinName = MaxName = Appliance_Power[0].first;
+	for (int i = 0; i < Appliance_Power.size(); i++)
+	{
+		if (Appliance_Power[i].second > MaxPower)
+		{
+			MaxPower = Appliance_Power[i].second;
+			MaxName = Appliance_Power[i].first;
+		}
+		if (Appliance_Power[i].second < MinPower)
+		{
+			MinPower = Appliance_Power[i].second;
+			MinName = Appliance_Power[i].first;
+
+		}
+	}
+
+		Predicted_daily_cost = netPower_daily * 7;
+	carbon_footprint_daily = 0.82 * netPower_daily;
+	Energy_Intensity_daily = netPower_daily / SIZE;
+	Last_daily_cost = Energy_Intensity_daily - Energy_Intensity_daily * 0.15;
+	pdaily = ((Energy_Intensity_daily - Last_daily_cost) / Energy_Intensity_daily) * 100;
+
+		Predicted_monthly_cost = Predicted_daily_cost * 30;
+	netPower_monthly = netPower_daily * 30;
+	carbon_footprint_monthly = 30 * carbon_footprint_daily;
+	GreenPower_Monthly = GreenPower_Daily * 30;
+	Energy_Intensity_monthly = Energy_Intensity_daily * 30;
+	Last_monthly_cost = Energy_Intensity_monthly + Energy_Intensity_monthly * 0.42;
+	pmonthly = ((Energy_Intensity_monthly - Last_monthly_cost) / Energy_Intensity_monthly) * 100;
+
+		Predicted_annual_cost = 12 * Predicted_monthly_cost;
+	netPower_annualy = netPower_monthly * 12;
+	carbon_footprint_annualy = carbon_footprint_monthly * (12);
+	GreenPower_Annually = GreenPower_Monthly * 12;
+	Energy_Intensity_annualy = Energy_Intensity_monthly * 30;
+	Last_annual_cost = Energy_Intensity_annualy - Energy_Intensity_annualy * 0.1125;
+	pannual = ((Energy_Intensity_annualy - Last_annual_cost) / Energy_Intensity_annualy) * 100;
+
+
+
+	setColor(LightCyan, Black);
+	cout << "		+--------------------------------------------------------------------------------------------------------+" << std::endl;
+	cout << "		|                                             Analysis Report                                            |" << std::endl;
+	cout << "		+--------------------------------------------------------------------------------------------------------+" << std::endl;
+	cout << "		+----------------------------------------------Regular Power---------------------------------------------+" << std::endl;
+	cout << "		|1.|               Daily Power Consumption           |       " << netPower_daily << "KWh                                     " << std::endl;
+	cout << "		|2.|             Monthly Power Consumption           |       " << netPower_monthly << "KWh                                    " << std::endl;
+	cout << "		|3.|            Annually Power Consumption           |       " << netPower_annualy << "KWh                                   " << std::endl;
+	cout << "		|4.|            Max power consuming device           |       " << MaxName << "-" << MaxPower << "W                                    " << std::endl;
+	cout << "		|5.|            Min power consuming device           |       " << MinName << "-" << MinPower << "W                                    " << std::endl;
+	cout << "		+------------------------------------------------Expenses------------------------------------------------+" << std::endl;
+	cout << "		|1.|                  Predicted Daily Cost           |       Rs." << Predicted_daily_cost << "                                    " << std::endl;
+	cout << "		|2.|                Predicted Monthly Cost           |       Rs." << Predicted_monthly_cost << "                                   " << std::endl;
+	cout << "		|3.|                Predicted Annually Cost          |       Rs." << Predicted_annual_cost << "                              " << std::endl;
+	cout << "		|4.|                     Previous Day Cost           |       Rs." << setprecision(2) << Last_daily_cost << "                                       " << std::endl;
+	cout << "		|5.|                   Previous Month Cost           |       Rs." << Last_monthly_cost << "                                 " << std::endl;
+	cout << "		|6.|                        Last Year Cost           |       Rs." << Last_annual_cost << "                                 " << std::endl;
+	cout << "		|7.|               Percentage change daily           |       " << pdaily << "%                                         " << std::endl;
+	cout << "		|8.|             Percentage change monthly           |       " << pmonthly << "%                                        " << std::endl;
+	cout << "		|9.|             Percentage change annualy           |       " << pannual << "%                                         " << std::endl;
+	cout << "		+-----------------------------------------------Green Power----------------------------------------------+" << std::endl;
+	cout << "		|1.|               Daily Power Consumption           |       " << GreenPower_Daily << "KWh                                 " << std::endl;
+	cout << "		|2.|             Monthly Power Consumption           |       " << GreenPower_Monthly << "KWh                                   " << std::endl;
+	cout << "		|3.|            Annually Power Consumption           |       " << GreenPower_Annually << "KWh                                 " << std::endl;
+	cout << "		+---------------------------------------------Carbon Footprint-------------------------------------------+" << std::endl;
+	cout << "		|1.|               Daily Carbon footprint            |       " << carbon_footprint_daily << "Kg                                  " << std::endl;
+	cout << "		|2.|             Monthly Carbon footprint            |       " << carbon_footprint_monthly << "Kg                                  " << std::endl;
+	cout << "		|3.|            Annually Carbon footprint            |       " << carbon_footprint_annualy << "Kg                                  " << std::endl;
+	cout << "		+---------------------------------------------Energy Intensity-------------------------------------------+" << std::endl;
+	cout << "		|1.|               Daily Energy Intensity            |       " << Energy_Intensity_daily << "KWh/Acre                                  " << std::endl;
+	cout << "		|2.|             Monthly Energy Intensity            |       " << Energy_Intensity_monthly << "KWh/Acre                            " << std::endl;
+	cout << "		|3.|            Annually Energy Intensity            |       " << Energy_Intensity_annualy << "KWh/Acre                            " << std::endl;
+	cout << "		+--------------------------------------------------------------------------------------------------------+" << std::endl;
+	setColor();
 }
