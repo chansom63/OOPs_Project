@@ -11,14 +11,24 @@
 #include <cstdlib>
 #include <Windows.h>
 using namespace std;
+
+
 namespace Random {
-	unsigned int get(int start, int End)
-	{
-		int value;
-		srand(time(0));
-		value = rand() % End;
-		if (value < start) return value + start;
-		else return value;
+	unsigned int get(int start, int End) {
+		static bool initialized = false;
+		if (!initialized) {
+			srand(time(0));
+			initialized = true;
+		}
+
+		// Ensure start is smaller than End
+		if (start >= End) {
+			return 0; // Or some appropriate error handling
+		}
+
+		int range = End - start + 1;
+		int value = rand() % range + start;
+		return value;
 	}
 };
 
@@ -30,11 +40,36 @@ string timeToString(time_t time) {
 
 // Error proof input functions
 void clearScreen();
+void putSpace(int);
 void ignoreLine();
 double getDouble(string s);
 string getString(string a);
 int getInt(string s);
 bool getBool(string s);
+
+// Define color constants
+enum ConsoleColor {
+	Black = 0,
+	Blue = 1,
+	Green = 2,
+	Cyan = 3,
+	Red = 4,
+	Magenta = 5,
+	Brown = 6,
+	LightGray = 7,
+	DarkGray = 8,
+	LightBlue = 9,
+	LightGreen = 10,
+	LightCyan = 11,
+	LightRed = 12,
+	LightMagenta = 13,
+	Yellow = 14,
+	White = 15
+};
+
+void setColor(ConsoleColor text = White, ConsoleColor background = Black) {
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (WORD)((background << 4) | text));
+}
 
 class Appliances
 {
@@ -44,7 +79,7 @@ class Appliances
 	bool status;
 	bool conditions;
 	vector <string> failure = { "Warning: risk of electric shock due to high current!", "Warning: risk of short circuit due to high power consumption!",
-	"Warning: potential physical damage to electronic components!", "Warning: risk of any malfunction!", "Warning: risk of over heating and equipment damage" };
+	"Warning: potential physical damage to electronic components!", "Warning: risk of malfunction!", "Warning: risk of over heating and equipment damage" };
 
 public:
 	Appliances() = default;
@@ -59,39 +94,104 @@ public:
 	}
 	string& getName() { return name; }
 	// Report function
-	void report()
+	void report(bool heir = false, int h = 2)
 	{
-		cout << "Report of appliance " << name << endl << endl;
+		setColor(DarkGray, Black);
+		if (heir && h == 2)
+			cout << "|    |    |    |--  ";
+		if (heir && h == 1)
+			cout << "|    |    |--  ";
+
+		setColor(LightBlue, Black);
+		cout << "Appliance: " << name << endl;
 		bool maintain = false;
-		int code = Random::get(0, 2 * failure.size());
+		int code = Random::get(0, 3 * failure.size());
 		int random = Random::get(50, 100);
 		int random1 = Random::get(0, 100);
+		setColor(DarkGray, Black);
+		if (h == 1)
+			cout << "|    |    |        > ";
+		if (h == 2)
+			cout << "|    |    |    |        > ";
+		setColor(LightGreen, Black);
 		cout << "Name: " << name << endl;
+		setColor(DarkGray, Black);
+		if (h == 1)
+			cout << "|    |    |        > ";
+		if (h == 2)
+			cout << "|    |    |    |        > ";
+		setColor(LightGreen, Black);
 		cout << "Status: " << status << endl;
-		cout << "Power Consumption: " << power << endl <<
-			"Energy Efficiency: " << random << endl;
+		setColor(DarkGray, Black);
+
+		if (h == 1)
+			cout << "|    |    |        > ";
+		if (h == 2)
+			cout << "|    |    |    |        > ";
+		setColor(LightGreen, Black);
+		cout << "Power Consumption: " << power << endl;
+		setColor(DarkGray, Black);
+
+		if (h == 1)
+			cout << "|    |    |        > ";
+		if (h == 2)
+			cout << "|    |    |    |        > ";
+		setColor(LightGreen, Black);
+		cout <<	"Energy Efficiency: " << random << endl;
 		if (code < failure.size())
 		{
 			conditions = 1;
+			setColor(DarkGray, Black);
+
+			if (h == 1)
+				cout << "|    |    |        > ";
+			if (h == 2)
+				cout << "|    |    |    |        > ";
+			setColor(LightGreen, Black);
+
 			cout << failure[code] << endl;
 			maintain = true;
 		}
-		cout << "Conditions: " << conditions << endl;
+		setColor(DarkGray, Black);
 
+		if (h == 1)
+			cout << "|    |    |        > ";
+		if (h == 2)
+			cout << "|    |    |    |        > ";
+		setColor(LightGreen, Black);
+		cout << "Conditions: " << conditions << endl;
+		setColor(DarkGray, Black);
+
+		if (h == 1)
+			cout << "|    |    |        > ";
+		if (h == 2)
+			cout << "|    |    |    |        > ";
+		setColor(LightGreen, Black);
 		if ((random1 >= 0 && random1 <= 10) || maintain)
 			cout << "Maintainence required." << endl;
 		else
 			cout << "Maintainence not required. " << endl;
+		setColor(DarkGray, Black);
+
+		if (h == 1)
+			cout << "|    |              ";
+		if (h == 2)
+			cout << "|    |    |    |          ";
 		cout << endl;
+		setColor();
 	}
 	// current status function
 	void currentStatus()
 	{
+		setColor(LightBlue, Black);
 		cout << "Appliance: " << name << " - Status: ";
+		setColor(LightGreen, Black);
 		if (status)
 			cout << "On" << endl;
 		else
 			cout << "Off" << endl;
+		setColor();
+		cout << endl;
 	}
 	friend class Room;
 };
@@ -124,19 +224,34 @@ public:
 	}
 	void currentStatus() // updated
 	{
+		setColor(LightMagenta, Black);
 		cout << "Current Status of Appliances in Room " << name << ":" << endl << endl;
+		setColor();
 		for (unsigned int i = 0; i < appliances.size(); ++i)
 		{
 			appliances[i].currentStatus();
 		}
 	}
 	string& getName() { return name; }
-	void report() // add synonymous function to other classes as well
+	void report(bool heir = false, int h = 0) // add synonymous function to other classes as well
 	{
-		cout << "Report of room " << name << endl << endl;
+		setColor(DarkGray, Black);
+		if (heir && h == 2)
+			cout << "|    |    |--  ";
+		else if (heir && h == 1)
+			cout << "|    |--   ";
+		setColor(LightMagenta, Black);
+		cout << "Room: " << name << endl;
+		setColor(DarkGray, Black);
+		if (heir && h == 2)
+			cout << "|    |    |     ";
+		else if (heir && h == 1)
+			cout << "|    |   ";
+		cout << endl;
+		setColor();
 		for (auto& appliance : appliances)
 		{
-			appliance.report();
+			appliance.report(true, 2);
 		}
 	}
 	//        void DynamicScheduling(){
@@ -167,7 +282,9 @@ public:
 	// member functions here
 	void currentStatus()
 	{
+		setColor(LightGray, Black);
 		cout << "Current Status of Appliances in Section " << name << ":" << endl << endl;
+		setColor();
 		for (auto& app : appliances)
 		{
 			app.currentStatus();
@@ -182,16 +299,26 @@ public:
 	{
 		appliances.push_back(inputAppliance());
 	}
-	void report()
+	void report(bool heir = false) // additional bool heir to provide tree structure
 	{
-		cout << "Report of section " << name << endl << endl;
+		setColor(DarkGray, Black);
+		if (heir)
+			cout << "|    |--  ";
+		
+		setColor(LightGray, Black);
+		cout << "Section: " << name << endl;
+		setColor(DarkGray, Black);
+		if (heir)
+			cout << "|    |     ";
+		cout << endl;
+		setColor();
 		for (auto& app : appliances)
 		{
-			app.report();
+			app.report(true, 1);
 		}
 		for (auto& room : rooms)
 		{
-			room.report();
+			room.report(true, 2);
 		}
 	}
 	string& getName() { return name; }
@@ -249,7 +376,9 @@ public:
 	vector<Sections>& getSections () { return sections; } 
 	void currentStatus()
 	{
+		setColor(Yellow, Black);
 		cout << "Current Status of Appliances in Admin " << name << ":" << endl << endl;
+		setColor();
 		for (auto& room : Rooms)
 		{
 			room.currentStatus();
@@ -295,14 +424,21 @@ public:
 	// member functions here
 	void report()
 	{
-		cout << "Report of Admin " << name << endl << endl;
+		setColor(DarkGray, Black);
+		cout << "|--  ";
+		setColor(Yellow, Black);
+		cout << "Admin: " << name << endl;
+		setColor(DarkGray, Black);
+		cout << "|";
+		setColor();
+		cout << endl;
 		for (auto& room : Rooms)
 		{
-			room.report();
+			room.report(true, 1);
 		}
 		for (auto& section : sections)
 		{
-			section.report();
+			section.report(true);
 		}
 	}
 
@@ -504,6 +640,12 @@ Appliances inputAppliance()
 
 
 // functionality for location based function call 
+
+string lowerString(string loc)
+{
+	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+	return loc;
+}
 			
 variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admin> obj, bool& success) // parse the location and return the reference of appropriate object based on it
 {
@@ -511,7 +653,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	// we can ignore leading and ending spaces and capitalization
 	success = true;
 	int k = loc.size();
-	std::transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+	loc = lowerString(loc);
 	int i = 0;
 	vector<string> processed; // get the processed words from string
 	while (i < k)
@@ -533,7 +675,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	Admin& t1 = obj[0];
 	for (auto& a : obj)
 	{
-		if (a.getName().compare(processed[0]) == 0)  // update codebase
+		if (lowerString(a.getName()).compare(lowerString(processed[0])) == 0)  // update codebase
 		{
 			t1 = a;
 			success = true;
@@ -548,7 +690,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	Sections& t2 = temp1[0];
 	for (auto& a : temp1)
 	{
-		if (a.getName().compare(processed[1]) == 0)
+		if (lowerString(a.getName()).compare(lowerString(processed[1])) == 0)
 		{
 			t2 = a;
 			success = true;
@@ -562,8 +704,8 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	vector<Room>& temp2 = t2.getRooms(); // update codebase
 	Room& t3 = temp2[0];
 	for (auto& a : temp2)
-	{
-		if (a.getName().compare(processed[2]) == 0)
+	{ 
+		if (lowerString(a.getName()).compare(lowerString(processed[2])) == 0)
 		{
 			t3 = a;
 			success = true;
@@ -578,7 +720,7 @@ variant<Admin, Sections, Room, Appliances> parseLocation(string loc, vector<Admi
 	Appliances& t4 = temp3[0];
 	for (auto& a : temp3)
 	{
-		if (a.getName().compare(processed[3]) == 0)
+		if (lowerString(a.getName()).compare(lowerString(processed[3])) == 0)
 		{
 			t4 = a;
 			success = true;
@@ -666,33 +808,8 @@ void putLine(int s)
 	}
 }
 
-string locate = "admin1";
+string locate = "Admin1";
 variant< Admin, Sections, Room, Appliances> var;
-
-// Function to set text color
-// Define color constants
-enum ConsoleColor {
-	Black = 0,
-	Blue = 1,
-	Green = 2,
-	Cyan = 3,
-	Red = 4,
-	Magenta = 5,
-	Brown = 6,
-	LightGray = 7,
-	DarkGray = 8,
-	LightBlue = 9,
-	LightGreen = 10,
-	LightCyan = 11,
-	LightRed = 12,
-	LightMagenta = 13,
-	Yellow = 14,
-	White = 15
-};
-
-void setColor(ConsoleColor text = White, ConsoleColor background = Black) {
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (WORD)((background << 4) | text));
-}
 
 
 int main()
@@ -721,8 +838,8 @@ int main()
 	Sections sectionC({ room301 }, { ac, bulb, fan }, "sectionc");
 
 	// Create admins and add sections to them
-	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin1");
-	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "admin2");
+	Admin admin1({ sectionA, sectionB }, PowerSource(3, 2), PowerSource(3, 2), {room101}, "Admin1");
+	Admin admin2({ sectionC }, PowerSource(3, 2), PowerSource(3, 2), {}, "Admin2");
 
 	vector<Admin> pass = { admin1, admin2 };
 	var = parseLocation(locate, pass, running);
@@ -815,9 +932,7 @@ int main()
 			// display status
 			visit(reportFunc, var);
 			putLine(5);
-			visit(currentStatusFunc, var);
 			setColor();
-			putLine(3);
 			int ask = getInt("Enter your choice: ");
 			toggle(static_cast<pages::sect> (ask));
 		}
