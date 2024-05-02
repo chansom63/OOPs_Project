@@ -46,6 +46,7 @@ double getDouble(string s);
 string getString(string a);
 int getInt(string s);
 bool getBool(string s);
+string lowerString(string loc);
 
 // Define color constants
 enum ConsoleColor {
@@ -746,23 +747,20 @@ Appliances inputAppliance()
 	return Appliances(name, power, qty, status, condition);
 }
 
-/*void removeAppliance() {
-	cout << "+------------------+" << std::endl;
-	cout << "| Remove Appliance |" << std::endl;
-	cout << "+------------------+" << std::endl;
-
-	cout << "Enter the index of the appliance you want to remove: ";
-	int index;
-	cin >> index;
-
-	if (index < 0 || index >= appliances.size()) {
-		cout << "Invalid index." << endl;
-		return;
+bool removeAppliance(vector<Appliances>& app, string name) {
+	for (auto it = app.begin(); it != app.end(); ) {
+		if (lowerString(it->getName()) == lowerString(name)) {
+			it = app.erase(it);
+			cout << "Appliance removed successfully." << endl;
+			return true;
+		}
+		else {
+			++it;
+		}
 	}
-
-	appliances.erase(appliances.begin() + index);
-	cout << "Appliance removed successfully." << endl;
-}*/
+	cout << "Appliance not found, please try again." << endl;
+	return false;
+}
 
 
 // functionality for location based function call 
@@ -1061,6 +1059,12 @@ void BluePrint()
 	setColor();
 }
 
+void refreshLocation(vector<Admin>& obj)
+{
+	bool s;
+	vector<string> temp;
+	var = parseLocation(locate, obj, s, temp);
+}
 
 int main()
 {
@@ -1444,6 +1448,7 @@ int main()
 			int ask = getInt("Enter your choice: ");
 			if (ask == 1)
 			{
+				// Add appliance based on location
 				bool s = false;
 				variant< Admin*, Sections*, Room*, Appliances*> tvar;
 				vector<string> proc;
@@ -1474,13 +1479,65 @@ int main()
 						tr->addAppliance();
 					}
 					cout << "Successfully added appliance!" << endl;
+					refreshLocation(pass);
 				}
 				string hold = getString("Enter anything to reset: ");
 				clearScreen();
 			}
 			else if (ask == 2)
 			{
-				
+				// Remove appliance baseed on location
+				bool s = false;
+				variant< Admin*, Sections*, Room*, Appliances*> tvar;
+				vector<string> proc;
+				while (!s)
+				{
+					string tlocate = getString("Enter location where to remove appliance: ");
+					tvar = parseLocationReference(tlocate, pass, s, proc); // to check if location is true or false
+					if (!s) cout << "Location inaccessible, please write correct location" << endl;
+				}
+				cout << endl;
+				int lev = proc.size();
+				if (lev == 1 || lev == 4)
+				{
+					cout << "No appliance to remove here, please select section or room" << endl;
+				}
+				else
+				{
+					if (lev == 2)
+					{
+						Sections* ts = get<Sections*>(tvar);
+						vector<Appliances>& aps = ts->getAppliances();
+						cout << "Choose appliance to remove: " << endl;
+						for (auto& appl : aps)
+						{
+							cout << "> " << appl.getName() << endl;
+						}
+						string aname;
+						do
+						{
+							aname = getString("Enter appliance name: ");
+						} while (!removeAppliance(aps, aname));
+					}
+					if (lev == 3)
+					{
+						Room* tr = get<Room*>(tvar);
+						vector<Appliances>& apr = tr->getAppliances();
+						cout << "Choose appliance to remove: " << endl;
+						for (auto& appl : apr)
+						{
+							cout << "> " << appl.getName() << endl;
+						}
+						string aname;
+						do
+						{
+							aname = getString("Enter appliance name: ");
+						} while (!removeAppliance(apr, aname));
+					}
+					refreshLocation(pass);
+				}
+				string hold = getString("Enter anything to reset: ");
+				clearScreen();
 			}
 			else if (ask == 3)
 			{
@@ -1498,8 +1555,6 @@ int main()
 			{
 				toggle(pages::Configure);
 			}
-
-			// add and remove appliance feature based on location
 		}
 	}
 	putLine(25);
